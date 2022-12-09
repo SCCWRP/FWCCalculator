@@ -63,16 +63,14 @@ joined <- sample |>
   )
 
 
+sample_bin_breaks <- numeric(length(joined$mins) + 1)
+sample_bin_breaks[1] <- 0
 
-concat_mins <- c(0, joined$mins, max(flow$mins))
-sample_bin_breaks <- numeric(length(concat_mins))
-
-
-for (i in 2:(length(concat_mins)-1)) {
-  sample_bin_breaks[i] <- mean(c(concat_mins[i], concat_mins[i+1]))
+for (i in 2:(length(sample_bin_breaks))) {
+  sample_bin_breaks[i] <- mean(c(joined$mins[i-1], joined$mins[i]))
 }
 
-sample_bin_breaks[length(concat_mins)] <- tail(concat_mins,1)
+sample_bin_breaks[length(sample_bin_breaks)] <-max(flow$mins)
 
 sample_bin_breaks <- sapply(sample_bin_breaks, get_nearest_time, flow_mins = flow$mins)
 
@@ -82,32 +80,37 @@ V <- numeric(length(sample$times))
 
 for (i in 1:length(V)) {
   x_bounds <- c(sample_bin_breaks[i], sample_bin_breaks[i + 1])
-  flow_slices <-flow |>
+
+  flow_slices <- flow |>
     filter(mins %in% x_bounds[1]:x_bounds[2]) |>
     pull(values)
+
   min_slices <- flow |>
     filter(mins %in% x_bounds[1]:x_bounds[2]) |>
     pull(mins)
+
   slices <- length(flow_slices)
+
   vol <- 0
   for (j in 1:(slices-1)) {
     vol <- vol + mean(c(flow_slices[j], flow_slices[j + 1]))*(min_slices[j + 1] - min_slices[j])
-
   }
+
   print(paste0(i, "th length: ", slices))
   V[i] <- vol
 }
 
 
-V/sum(V)*1000
+V/sum(V)
+
+
 
 
 
 ggplot() +
   geom_point(data = joined, aes(x = mins, y = values_flow, color = 'Sample')) +
   geom_line(data = flow, aes(x = mins, y = values, color = 'Flow')) +
-  geom_vline(xintercept = sample_bin_breaks) +
-  geom_vline(xintercept = 1636, color = 'red') +
+  #geom_vline(xintercept = sample_bin_breaks) +
   ylim(min(flow$values) - sd(flow$values),max(flow$values) + sd(flow$values)) +
   labs(x = 'Time since start (min)', y = 'Flowrate', color = NULL) +
   theme(legend.position = c(.925,.95), legend.background = element_blank(), legend.key = element_blank()) +
