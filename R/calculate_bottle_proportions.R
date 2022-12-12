@@ -1,6 +1,6 @@
 source('R/get_nearest_time.R', local = TRUE)
 
-calculate_bottle_proportions <- function(flow, sample, joined) {
+calculate_bottle_proportions <- function(flow, sample, joined, composite_vol = 1000) {
   sample_bin_breaks <- numeric(length(joined$mins) + 1)
   sample_bin_breaks[1] <- 0
 
@@ -35,6 +35,6 @@ calculate_bottle_proportions <- function(flow, sample, joined) {
   }
 
 
-  data.frame(Bottle_Number = 1:length(V), Proportions = V/sum(V))
+  data.frame(BottleNumber = 1:length(V), `Proportions (mL)` = V/sum(V)*composite_vol)
 }
 
