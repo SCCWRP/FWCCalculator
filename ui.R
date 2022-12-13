@@ -1,6 +1,15 @@
 ui <- navbarPage(
   "EMC Calculator",
-  tabPanel("Upload"),
+  tabPanel(
+    "Upload",
+    fileInput(
+      "file", "Choose Excel File",
+      multiple = FALSE,
+      accept = ".xlsx"
+    ),
+    hr(),
+    actionButton("run_graph", "Load Hydrograph")
+  ),
   tabPanel(
     "Hydrograph",
     fluidRow(
@@ -14,9 +23,9 @@ ui <- navbarPage(
             sliderInput(
               "range",
               "Time range in minutes",
-              min = xmin,
-              max = xmax,
-              value = c(xmin, xmax)
+              min = 0,
+              max = 1000,
+              value = c(0, 1000)
             )
           )
         )
