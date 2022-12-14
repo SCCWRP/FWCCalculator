@@ -14,11 +14,40 @@ server <- function(input, output) {
   }) |>
     bindEvent(input$run_graph)
 
+  filtered <- reactive({
+    flow <- data()$flow
+    sample <- data()$sample
+    joined <- data()$joined
+
+
+    flow_filtered <- flow |>
+      filter(between(mins, input$range[1], input$range[2]))
+
+    sample_filtered <-  sample |>
+      filter(between(mins, input$range[1], input$range[2]))
+
+    joined_filtered <-  joined |>
+      filter(between(mins, input$range[1], input$range[2]))
+
+    proportions <- calculate_bottle_proportions(flow_filtered, sample_filtered, joined_filtered)
+
+    list(flow = flow_filtered, sample = sample_filtered, joined = joined_filtered, proportions = proportions)
+  }) |>
+    bindEvent(input$range)
+
+
+
   observe({
     xmin <- min(data()$flow$mins)
     xmax <- max(data()$flow$mins)
     updateSliderInput(inputId = "range", min = xmin, max = xmax,
                       value = c(xmin, xmax))
+    if (!all(is.na(data()$sample$values))) {
+      appendTab("tabs", tab = tabPanel(
+        "EMC",
+        textOutput("EMC")
+      ))
+    }
   })
 
 
@@ -38,7 +67,7 @@ server <- function(input, output) {
       ylim(ymin, ymax) +
       labs(x = 'Time since start (min)', y = 'Flowrate', color = NULL) +
       theme(
-        legend.position = 'top',#c(0.5, 1),
+        legend.position = 'bottom',
         legend.justification = c("center", "top"),
         legend.background = element_blank(),
         legend.key = element_blank()
@@ -68,22 +97,26 @@ server <- function(input, output) {
     bindCache(data(), input$range)
 
   output$proportions <- renderTable({
-    flow <- data()$flow
-    sample <- data()$sample
-    joined <- data()$joined
-
-    flow_filtered <- flow |>
-      filter(between(mins, input$range[1], input$range[2]))
-
-    sample_filtered <-  sample |>
-      filter(between(mins, input$range[1], input$range[2]))
-
-    joined_filtered <-  joined |>
-      filter(between(mins, input$range[1], input$range[2]))
-
-    proportions <- calculate_bottle_proportions(flow_filtered, sample_filtered, joined_filtered)
-    colnames(proportions) <- c('Bottle Number', 'Proportions (mL)')
-    proportions
+    prop_out <- filtered()$proportions
+    colnames(prop_out) <- c("Bottle Number", "Proportions (mL)")
+    prop_out$`Proportions (mL)` <- signif(prop_out$`Proportions (mL)`, 3)
+    prop_out
   }, align = 'c', striped = TRUE) |>
     bindCache(data(), input$range)
+
+  output$download_data <- downloadHandler(
+    filename = function() {
+      paste0("proportions-", Sys.Date(), ".csv")
+    },
+    content = function(file) {
+      write.csv(sapply(filtered()$proportions, signif, digits = 3), file, row.names = FALSE)
+    }
+  )
+
+  output$EMC <- renderText({
+    props <- filtered()$proportions
+    sample <- filtered()$sample
+
+    paste('Event Mean Concentration:', signif(as.numeric(props$Proportions%*%sample$values), 3))
+  })
 }
