@@ -42,6 +42,6 @@ calculate_bottle_proportions <- function(flow, sample, joined, composite_vol = 1
   }
 
 
-  data.frame(BottleNumber = 1:length(V), `Proportions (mL)` = V/sum(V)*composite_vol)
+  data.frame(BottleNumber = 1:length(V), Proportions = V/sum(V)*composite_vol)
 }
 
