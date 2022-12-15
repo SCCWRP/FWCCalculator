@@ -4,8 +4,11 @@ calculate_bottle_proportions <- function(flow, sample, joined, composite_vol = 1
   flow_row_num <- dim(flow)[1]
   sample_row_num <- dim(sample)[1]
   joined_row_num <- dim(sample)[1]
+
+  output <- data.frame(SampleTime = NA, Proportions = NA, Volume = NA)
+
   if (any(flow_row_num == 0, sample_row_num == 0, joined_row_num == 0)) {
-    return(data.frame(BottleNumber = NA, `Proportions (mL)` = NA))
+    return(output)
   }
 
   sample_bin_breaks <- numeric(length(joined$mins) + 1)
@@ -36,12 +39,12 @@ calculate_bottle_proportions <- function(flow, sample, joined, composite_vol = 1
 
     vol <- 0
     for (j in 1:(slices-1)) {
-      vol <- vol + mean(c(flow_slices[j], flow_slices[j + 1]))*(min_slices[j + 1] - min_slices[j])
+      vol <- vol + mean(c(flow_slices[j], flow_slices[j + 1]))*((min_slices[j + 1] - min_slices[j])*60)
     }
     V[i] <- vol
   }
 
-
-  data.frame(BottleNumber = 1:length(V), Proportions = V/sum(V)*composite_vol)
+  output <- data.frame(SampleTime = sample$times, Proportions = V/sum(V)*composite_vol, Volume = V)
+  output
 }
 
