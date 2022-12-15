@@ -97,16 +97,17 @@ server <- function(input, output) {
     bindCache(data(), input$range)
 
   output$proportions <- renderTable({
-    prop_out <- filtered()$proportions
-    colnames(prop_out) <- c("Bottle Number", "Proportions (mL)")
-    prop_out$`Proportions (mL)` <- signif(prop_out$`Proportions (mL)`, 3)
+    prop_out <- filtered()$proportions[, c(1, 2)]
+    colnames(prop_out) <- c("Sample Times", "Aliquot Volume (mL)")
+    prop_out$`Sample Times` <- paste(prop_out$`Sample Times`)
+    prop_out$`Aliquot Volume (mL)` <- signif(prop_out$`Aliquot Volume (mL)`, 3)
     prop_out
-  }, align = 'c', striped = TRUE) |>
+  }, align = 'c', striped = TRUE, display = c("d", "s", "fg")) |>
     bindCache(data(), input$range)
 
   output$download_data <- downloadHandler(
     filename = function() {
-      paste0("proportions-", Sys.Date(), ".csv")
+      paste0("Aliquot-Volume-", Sys.Date(), ".csv")
     },
     content = function(file) {
       write.csv(sapply(filtered()$proportions, signif, digits = 3), file, row.names = FALSE)
