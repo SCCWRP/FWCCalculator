@@ -6,7 +6,9 @@ server <- function(input, output, session) {
   library(ggplot2)
   source('R/clean_data.R', local = TRUE)
   source('R/calculate_bottle_proportions.R', local = TRUE)
+  source('R/volume_conversion.R', local = TRUE)
 
+  observeEvent(input$reset_button, {session$reload()})
 
   output$fileUploaded <- reactive({
     !is.null(input$file)
@@ -16,20 +18,22 @@ server <- function(input, output, session) {
   data <- reactive({
     data_path <- input$file$datapath
     data_out <- clean_data(data_path)
-    data_out['units'] <- input$flow_choices
+    data_out$units <- input$flow_choices
     data_out
   }) |>
     bindEvent(input$submit)
 
-  observeEvent(
-    input$reset_button, {
-      session$reload()
-    })
+  converted_data <- reactive({
+    volume_conversion(data(), input$flow_choices)
+  }) |>
+    bindEvent(input$submit, input$flow_choices)
 
-  filtered <- reactive({
-    flow <- data()$flow
-    sample <- data()$sample
-    joined <- data()$joined
+
+  filtered_data <- reactive({
+
+    flow <- converted_data()$flow
+    sample <- converted_data()$sample
+    joined <- converted_data()$joined
 
 
     flow_filtered <- flow |>
@@ -41,20 +45,27 @@ server <- function(input, output, session) {
     joined_filtered <-  joined |>
       filter(between(mins, input$range[1], input$range[2]))
 
-    proportions <- calculate_bottle_proportions(flow_filtered, sample_filtered, joined_filtered)
+    proportions <- calculate_bottle_proportions(flow_filtered, sample_filtered, joined_filtered, input$composite_vol)
 
     list(flow = flow_filtered, sample = sample_filtered, joined = joined_filtered, proportions = proportions
     )
   }) |>
-    bindEvent(input$range)
+    bindEvent(input$submit, input$range, input$composite_vol)
 
+  observeEvent(
+    {
+      data()
+    },
+    {
+      xmin <- min(data()$flow$mins)
+      xmax <- max(data()$flow$mins)
+      updateSliderInput(inputId = "range", min = xmin, max = xmax,
+                        value = c(round(xmin + 0.5*sd(data()$flow$mins), -1), round(xmax - 0.5*sd(data()$flow$mins), -1)))
+    }
+  )
 
   observe({
-    xmin <- min(data()$flow$mins)
-    xmax <- max(data()$flow$mins)
-    updateSliderInput(inputId = "range", min = xmin, max = xmax,
-                      value = c(xmin, xmax))
-    if (!all(is.na(data()$sample$values))) {
+    if (!all(is.na(converted_data()$sample$values))) {
       appendTab("tabs", tab = tabPanel(
         "EMC",
         textOutput("EMC")
@@ -64,9 +75,9 @@ server <- function(input, output, session) {
 
 
   output$hydrograph <- renderPlot({
-    flow <- data()$flow
-    sample <- data()$sample
-    joined <- data()$joined
+    flow <- converted_data()$flow
+    sample <- converted_data()$sample
+    joined <- converted_data()$joined
 
     ymin <- min(flow$values) - sd(flow$values) # maybe just zero instead?
     ymax <- max(flow$values) + sd(flow$values)
@@ -95,47 +106,40 @@ server <- function(input, output, session) {
           override.aes = list(shape = c(NA,16), linetype = c(1,NA))
         )
       ) +
-      annotate(
-        "rect",
-        xmin = xmin,
-        xmax = input$range[1],
-        ymin = ymin,
-        ymax = ymax,
-        alpha = 0.2
+      annotate("rect", xmin = xmin, xmax = input$range[1],
+               ymin = ymin, ymax = ymax, alpha = 0.2
       ) +
-      annotate(
-        "rect",
-        xmin = input$range[2],
-        xmax = xmax,
-        ymin = ymin,
-        ymax = ymax,
-        alpha = 0.2
+      annotate("rect", xmin = input$range[2], xmax = xmax,
+               ymin = ymin, ymax = ymax, alpha = 0.2
       )
-  }) |>
-    bindCache(data(), input$range, input$flow_choices, cache = "session") |>
-    bindEvent(input$range, input$flow_choices)
+  })
 
-  output$proportions <- renderTable({
-    prop_out <- filtered()$proportions[, c("SampleTime", "Proportions")]
+  proportions <- reactive({
+    prop_out <- filtered_data()$proportions[, c("SampleTime", "AliquotVolume")]
     colnames(prop_out) <- c("Sample Times", "Aliquot Volume (mL)")
     prop_out$`Sample Times` <- paste(prop_out$`Sample Times`)
     prop_out$`Aliquot Volume (mL)` <- signif(prop_out$`Aliquot Volume (mL)`, 3)
     prop_out
+  })
+
+
+  output$proportions <- renderTable({
+    proportions()
   }, align = 'c', striped = TRUE, display = c("d", "s", "fg")) |>
-    bindCache(data(), input$range, cache = "session")
+    bindCache(proportions(), cache = "session")
 
   output$download_data <- downloadHandler(
     filename = function() {
       paste0("Aliquot-Volume-", Sys.Date(), ".csv")
     },
     content = function(file) {
-      write.csv(sapply(filtered()$proportions, signif, digits = 3), file, row.names = FALSE)
+      write.csv(proportions(), file, row.names = FALSE)
     }
   )
 
   output$EMC <- renderText({
-    props <- filtered()$proportions
-    sample <- filtered()$sample
+    props <- filtered_data()$proportions
+    sample <- filtered_data()$sample
 
     paste('Event Mean Concentration:', signif(as.numeric(props$Proportions%*%sample$values), 3))
   })
