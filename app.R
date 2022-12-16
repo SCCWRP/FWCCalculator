@@ -1,4 +1,5 @@
 library(shiny)
+library(shinyvalidate)
 
 
 # local = TRUE puts the object 'in-line' wherever the source function is called,
