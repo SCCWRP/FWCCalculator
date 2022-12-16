@@ -1,11 +1,9 @@
+source("R/units.R", local = TRUE)
+
 ui <- fluidPage(
   titlePanel("Flow-Weighting and Compositing Calculator"),
   sidebarLayout(
     sidebarPanel(
-      conditionalPanel(
-        "input.submit",
-        actionButton("reset_button", "Upload New Data")
-      ),
       conditionalPanel(
         "!input.submit",
         fileInput(
@@ -14,14 +12,27 @@ ui <- fluidPage(
           accept = ".xlsx"
         )
       ),
-      selectInput(
-        "flow_choices",
-        "Flow Units",
-        c("",
-          "ft³/s",
-          "L/s",
-          "m³/s"),
-        width = "100px"
+      fluidRow(
+        column(
+          6,
+          selectInput(
+            "flow_choices",
+            "Flow Units",
+            c("", allowed_units),
+            width = "150px"
+          )
+        ),
+        column(
+          6,
+          numericInput(
+            "composite_vol",
+            "Composite Volume (mL)",
+            value = 1000,
+            min = 500,
+            max = 10000,
+            width = "200px"
+          )
+        )
       ),
       conditionalPanel(
         "input.flow_choices != '' & output.fileUploaded & !input.submit",
@@ -30,6 +41,7 @@ ui <- fluidPage(
       conditionalPanel(
         "input.submit",
         downloadButton("download_data", "Download .csv"),
+        actionButton("reset_button", "Upload New Data"),
         tableOutput("proportions")
       )
     ),
@@ -46,7 +58,7 @@ ui <- fluidPage(
               min = 0,
               max = 1000,
               step = 5,
-              value = c(0, 1000)
+              value = c(100, 1000)
             )
           ),
           id = "tabs"
