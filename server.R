@@ -8,7 +8,29 @@ server <- function(input, output, session) {
   source('R/calculate_bottle_proportions.R', local = TRUE)
   source('R/volume_conversion.R', local = TRUE)
 
-  observeEvent(input$reset_button, {session$reload()})
+  observeEvent(
+    input$reset_button,
+    {
+      showModal(
+        modalDialog(
+          title = "Warning",
+          HTML("Press OK to reload the application and upload new data. All current data will be lost. <br>
+               Press Cancel to return to the application."),
+          footer = tagList(
+            actionButton("ok", "OK"),
+            modalButton("Cancel")
+          )
+        )
+      )
+    }
+  )
+
+  observeEvent(
+    input$ok,
+    {
+      session$reload()
+    }
+  )
 
   output$fileUploaded <- reactive({
     !is.null(input$file)
@@ -47,15 +69,12 @@ server <- function(input, output, session) {
 
     proportions <- calculate_bottle_proportions(flow_filtered, sample_filtered, joined_filtered, input$composite_vol)
 
-    list(flow = flow_filtered, sample = sample_filtered, joined = joined_filtered, proportions = proportions
-    )
+    list(flow = flow_filtered, sample = sample_filtered, joined = joined_filtered, proportions = proportions)
   }) |>
     bindEvent(input$submit, input$range, input$composite_vol)
 
   observeEvent(
-    {
-      data()
-    },
+    data(),
     {
       xmin <- min(data()$flow$mins)
       xmax <- max(data()$flow$mins)
@@ -64,13 +83,63 @@ server <- function(input, output, session) {
     }
   )
 
+
   observe({
-    if (!all(is.na(converted_data()$sample$values))) {
-      appendTab("tabs", tab = tabPanel(
+    if (!all(is.na(data()$sample$values))) {
+      insertTab("full_page", tab = tabPanel(
         "EMC",
+        fluidRow(
+          column(
+            3,
+            tableOutput("EMCtable")
+          ),
+          column(
+            9,
+            plotOutput("EMCgraph", height = 500)
+          )
+        ),
         textOutput("EMC")
       ))
     }
+  })
+
+
+  output$EMCtable <- renderTable({
+    EMCtable()
+  }, align = 'c', striped = TRUE, display = c("d", "s", "fg"))
+
+
+  output$EMCgraph <- renderPlot({
+    flow <- converted_data()$flow
+    sample <- converted_data()$sample
+
+    ymin <- min(sample$values) - sd(sample$values) # maybe just zero instead?
+    ymax <- max(sample$values) + sd(sample$values)
+    xmin <- min(flow$mins)
+    xmax <- max(flow$mins)
+
+    ggplot() +
+      geom_point(data = sample, aes(x = mins, y = values, color = 'Sample')) +
+      ylim(ymin, ymax) +
+      scale_x_continuous(breaks = scales::breaks_extended(n = 20)) +
+      #scale_y_continuous(breaks = scales::breaks_extended(n = 20)) +
+      labs(x = 'Time since start (min)', y = paste0('TSS'), color = NULL) +
+      theme(
+        legend.position = 'bottom',
+        legend.justification = c("center", "top"),
+        legend.background = element_blank(),
+        legend.text = element_text(size = 14),
+        legend.key = element_blank(),
+        axis.text.x = element_text(angle = 30, size = 14, vjust = 0.5),
+        axis.text.y = element_text(size = 14),
+        axis.title = element_text(size = 14)
+      ) +
+      annotate("rect", xmin = xmin, xmax = input$range[1],
+               ymin = ymin, ymax = ymax, alpha = 0.2
+      ) +
+      annotate("rect", xmin = input$range[2], xmax = xmax,
+               ymin = ymin, ymax = ymax, alpha = 0.2
+      )
   })
 
 
@@ -103,7 +172,7 @@ server <- function(input, output, session) {
       ) +
       guides(
         color = guide_legend(
-          override.aes = list(shape = c(NA,16), linetype = c(1,NA))
+          override.aes = list(shape = c(NA, 16), linetype = c(1, NA))
         )
       ) +
       annotate("rect", xmin = xmin, xmax = input$range[1],
@@ -122,6 +191,23 @@ server <- function(input, output, session) {
     prop_out
   })
 
+  EMCtable <- reactive({
+    EMC_out <- filtered_data()$sample[, c("times", "values")]
+    colnames(EMC_out) <- c("Sample Times", "Concentrations")
+    EMC_out$`Sample Times` <- paste(EMC_out$`Sample Times`)
+    EMC_out$Concentrations <- EMC_out$Concentrations
+    EMC_out
+  })
+
+  output$volume <- renderText({
+    flow <- converted_data()$flow
+    sample <- converted_data()$sample
+    joined <- converted_data()$joined
+
+    vol_out <- sum(calculate_bottle_proportions(flow, sample, joined)$Volume)
+    paste('Total Hydrograph Volume:', signif(vol_out, 3), substr(input$flow_choices, 1, nchar(input$flow_choices)-2))
+  })
+
 
   output$proportions <- renderTable({
     proportions()
@@ -130,7 +216,7 @@ server <- function(input, output, session) {
 
   output$download_data <- downloadHandler(
     filename = function() {
-      paste0("Aliquot-Volume-", Sys.Date(), ".csv")
+      paste0("Results-", format(Sys.time(), "%Y-%m-%d-%H%M%S"), ".csv")
     },
     content = function(file) {
       write.csv(proportions(), file, row.names = FALSE)
@@ -141,6 +227,6 @@ server <- function(input, output, session) {
     props <- filtered_data()$proportions
     sample <- filtered_data()$sample
 
-    paste('Event Mean Concentration:', signif(as.numeric(props$Proportions%*%sample$values), 3))
+    paste('Event Mean Concentration:', signif(as.numeric(props$Proportions%*%sample$values), 3), " units")
   })
 }
