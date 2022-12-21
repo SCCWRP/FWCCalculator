@@ -5,9 +5,9 @@ account: sccwrp
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 7901093
-bundleId: 6642349
+bundleId: 6662364
 url: https://sccwrp.shinyapps.io/FWCCalculator/
-when: 1671151856.6641
-lastSyncTime: 1671151856.66411
+when: 1671653485.29468
+lastSyncTime: 1671653485.2947
 asMultiple: FALSE
 asStatic: FALSE
