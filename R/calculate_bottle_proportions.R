@@ -3,7 +3,7 @@ source('R/get_nearest_time.R', local = TRUE)
 calculate_bottle_proportions <- function(flow, sample, joined, composite_vol = 1000) {
   flow_row_num <- dim(flow)[1]
   sample_row_num <- dim(sample)[1]
-  joined_row_num <- dim(sample)[1]
+  joined_row_num <- dim(joined)[1]
 
   output <- data.frame(SampleTime = NA, Proportions = NA, Volume = NA)
 
@@ -44,7 +44,7 @@ calculate_bottle_proportions <- function(flow, sample, joined, composite_vol = 1
     V[i] <- vol
   }
 
-  output <- data.frame(SampleTime = sample$times, Proportions = V/sum(V)*composite_vol, Volume = V)
+  output <- data.frame(SampleTime = sample$times, AliquotVolume = V/sum(V)*composite_vol, Proportions = V/sum(V), Volume = V)
   output
 }
 
