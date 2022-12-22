@@ -25,12 +25,10 @@ server <- function(input, output, session) {
     }
   )
 
-  observeEvent(
-    input$ok,
-    {
+  observe({
       session$reload()
-    }
-  )
+  }) |>
+    bindEvent(input$ok)
 
   output$fileUploaded <- reactive({
     !is.null(input$file)
@@ -73,74 +71,65 @@ server <- function(input, output, session) {
   }) |>
     bindEvent(input$submit, input$range, input$composite_vol)
 
-  observeEvent(
-    data(),
-    {
+  observe({
       xmin <- min(data()$flow$mins)
       xmax <- max(data()$flow$mins)
       updateSliderInput(inputId = "range", min = xmin, max = xmax,
                         value = c(round(xmin + 0.5*sd(data()$flow$mins), -1), round(xmax - 0.5*sd(data()$flow$mins), -1)))
-    }
-  )
+  }) |>
+    bindEvent(data())
 
+
+  output$has_conc <- reactive({
+    !all(is.na(data()$sample$values))
+  })
+  outputOptions(output, 'has_conc', suspendWhenHidden=FALSE)
 
   observe({
-    if (!all(is.na(data()$sample$values))) {
-      insertTab("full_page", tab = tabPanel(
-        "EMC",
-        fluidRow(
-          column(
-            3,
-            tableOutput("EMCtable")
-          ),
-          column(
-            9,
-            plotOutput("EMCgraph", height = 500)
+    if (input$conc_choices != "") {
+      insertTab(
+        "full_page",
+        tab = tabPanel(
+          "EMC",
+          fluidRow(
+            column(
+              4,
+              textOutput("volume2"),
+              textOutput("EMC", inline = TRUE),
+              tableOutput("EMCtable")
+            ),
+            column(
+              8,
+              plotOutput("EMCgraph", height = 500)
+            )
           )
         ),
-        textOutput("EMC")
-      ))
+        select = TRUE
+      )
+    }
+    else if (input$submit) {
+      insertTab(
+        "full_page",
+        tab =     tabPanel(
+          "Flow-Weighting",
+          fluidRow(
+            column(
+              4,
+              textOutput("volume1"),
+              downloadButton("download_data", "Download Results.csv"),
+              tableOutput("proportions")
+            ),
+            column(
+              8,
+              plotOutput("hydrograph", height = 500)
+            )
+          )
+        ),
+        select = TRUE
+      )
     }
   })
 
-
-  output$EMCtable <- renderTable({
-    EMCtable()
-  }, align = 'c', striped = TRUE, display = c("d", "s", "fg"))
-
-
-  output$EMCgraph <- renderPlot({
-    flow <- converted_data()$flow
-    sample <- converted_data()$sample
-
-    ymin <- min(sample$values) - sd(sample$values) # maybe just zero instead?
-    ymax <- max(sample$values) + sd(sample$values)
-    xmin <- min(flow$mins)
-    xmax <- max(flow$mins)
-
-    ggplot() +
-      geom_point(data = sample, aes(x = mins, y = values, color = 'Sample')) +
-      ylim(ymin, ymax) +
-      scale_x_continuous(breaks = scales::breaks_extended(n = 20)) +
-      #scale_y_continuous(breaks = scales::breaks_extended(n = 20)) +
-      labs(x = 'Time since start (min)', y = paste0('TSS'), color = NULL) +
-      theme(
-        legend.position = 'bottom',
-        legend.justification = c("center", "top"),
-        legend.background = element_blank(),
-        legend.text = element_text(size = 14),
-        legend.key = element_blank(),
-        axis.text.x = element_text(angle = 30, size = 14, vjust = 0.5),
-        axis.text.y = element_text(size = 14),
-        axis.title = element_text(size = 14)
-      ) +
-      annotate("rect", xmin = xmin, xmax = input$range[1],
-               ymin = ymin, ymax = ymax, alpha = 0.2
-      ) +
-      annotate("rect", xmin = input$range[2], xmax = xmax,
-               ymin = ymin, ymax = ymax, alpha = 0.2
-      )
-  })
 
 
   output$hydrograph <- renderPlot({
@@ -148,8 +137,8 @@ server <- function(input, output, session) {
     sample <- converted_data()$sample
     joined <- converted_data()$joined
 
-    ymin <- min(flow$values) - sd(flow$values) # maybe just zero instead?
-    ymax <- max(flow$values) + sd(flow$values)
+    ymin <- min(flow$values) # maybe just zero instead?
+    ymax <- max(flow$values)
     xmin <- min(flow$mins)
     xmax <- max(flow$mins)
 
@@ -158,17 +147,16 @@ server <- function(input, output, session) {
       geom_line(data = flow, aes(x = mins, y = values, color = 'Flow')) +
       ylim(ymin, ymax) +
       scale_x_continuous(breaks = scales::breaks_extended(n = 20)) +
-      #scale_y_continuous(breaks = scales::breaks_extended(n = 20)) +
       labs(x = 'Time since start (min)', y = paste0('Flowrate (', input$flow_choices, ')'), color = NULL) +
       theme(
         legend.position = 'bottom',
         legend.justification = c("center", "top"),
         legend.background = element_blank(),
-        legend.text = element_text(size = 14),
+        legend.text = element_text(size = 20),
         legend.key = element_blank(),
-        axis.text.x = element_text(angle = 30, size = 14, vjust = 0.5),
-        axis.text.y = element_text(size = 14),
-        axis.title = element_text(size = 14)
+        axis.text.x = element_text(angle = 30, size = 20, vjust = 0.5),
+        axis.text.y = element_text(size = 20),
+        axis.title = element_text(size = 20)
       ) +
       guides(
         color = guide_legend(
@@ -191,15 +179,8 @@ server <- function(input, output, session) {
     prop_out
   })
 
-  EMCtable <- reactive({
-    EMC_out <- filtered_data()$sample[, c("times", "values")]
-    colnames(EMC_out) <- c("Sample Times", "Concentrations")
-    EMC_out$`Sample Times` <- paste(EMC_out$`Sample Times`)
-    EMC_out$Concentrations <- EMC_out$Concentrations
-    EMC_out
-  })
-
-  output$volume <- renderText({
+  # can't output same thing in two html divs, so save same output to 2 vars
+  output$volume1 <- output$volume2 <- renderText({
     flow <- converted_data()$flow
     sample <- converted_data()$sample
     joined <- converted_data()$joined
@@ -227,6 +208,65 @@ server <- function(input, output, session) {
     props <- filtered_data()$proportions
     sample <- filtered_data()$sample
 
-    paste('Event Mean Concentration:', signif(as.numeric(props$Proportions%*%sample$values), 3), " units")
+    paste('Event Mean Concentration:', signif(as.numeric(props$Proportions%*%sample$values), 3)," ", paste(input$conc_choices))
+  })
+
+
+  EMCtable <- reactive({
+    EMC_out <- filtered_data()$sample[, c("times", "values")]
+    colnames(EMC_out) <- c("Sample Times", paste0("Concentrations ", "(", input$conc_choices, ")"))
+    EMC_out$`Sample Times` <- paste(EMC_out$`Sample Times`)
+    EMC_out
+  })
+
+
+  output$EMCtable <- renderTable({
+    EMCtable()
+  }, align = 'c', striped = TRUE, display = c("d", "s", "fg"))
+
+
+  output$EMCgraph <- renderPlot({
+    flow <- converted_data()$flow
+    sample <- converted_data()$sample
+
+
+
+    ymin <- min(flow$values) # maybe just zero instead?
+    ymax <- max(flow$values)
+    xmin <- min(flow$mins)
+    xmax <- max(flow$mins)
+
+    scaled_values <- scales::rescale(sample$values, to = c(ymin, ymax))
+    tss_scale_min <- min(sample$values) - 0.05*(max(sample$values) - min(sample$values))
+    tss_scale_max <- max(sample$values) + 0.05*(max(sample$values) - min(sample$values))
+
+    ggplot() +
+      geom_line(data = flow, aes(x = mins, y = values, color = 'Flow')) +
+      geom_point(data = sample, aes(x = mins, y = scaled_values, color = 'Sample')) +
+      ylim(ymin, ymax) +
+      scale_x_continuous(breaks = scales::breaks_extended(n = 20)) +
+      scale_y_continuous(sec.axis = sec_axis(~ scales::rescale(., to = c(tss_scale_min, tss_scale_max)), name = paste0('TSS (', input$conc_choices ,')'))) +
+      labs(x = 'Time since start (min)', y = paste0('Flowrate (', input$flow_choices, ')'), color = NULL) +
+      theme(
+        legend.position = 'bottom',
+        legend.justification = c("center", "top"),
+        legend.background = element_blank(),
+        legend.text = element_text(size = 20),
+        legend.key = element_blank(),
+        axis.text.x = element_text(angle = 30, size = 20, vjust = 0.5),
+        axis.text.y = element_text(size = 20),
+        axis.title = element_text(size = 20)
+      ) +
+      guides(
+        color = guide_legend(
+          override.aes = list(shape = c(NA, 16), linetype = c(1, NA))
+        )
+      ) +
+      annotate("rect", xmin = xmin, xmax = input$range[1],
+               ymin = ymin, ymax = ymax, alpha = 0.2
+      ) +
+      annotate("rect", xmin = input$range[2], xmax = xmax,
+               ymin = ymin, ymax = ymax, alpha = 0.2
+      )
   })
 }
