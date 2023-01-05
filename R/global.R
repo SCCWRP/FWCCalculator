@@ -1,4 +1,8 @@
-allowed_flow_units <- c("ft³/s", "L/s", "m³/s")
+global_font_size <- 18
+
+
+# global units
+allowed_flow_units <- c("ft\u00B3/s", "L/s", "m\u00B3/s")
 
 conversion_vector <- c(1, 28.3168, 1, 0.0283168, 0.001, 1) # upper triangle conversion factors by column
 
