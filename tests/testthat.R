@@ -7,10 +7,6 @@
 # * https://testthat.r-lib.org/reference/test_package.html#special-files
 
 library(testthat)
-source("R/calculate_bottle_proportions.R")
-source("R/clean_data.R")
-source("R/estimate_flow.R")
-source("R/get_nearest_time.R")
-source("R/volume_conversion.R")
+library(FWCCalculator)
 
-test_dir("testthat")
+test_check("FWCCalculator")
