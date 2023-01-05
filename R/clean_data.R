@@ -1,37 +1,33 @@
-source('R/estimate_flow.R', local = TRUE)
+clean_data <- function(data) {
+  flow <- data$flow
+  sample <- data$sample
 
-clean_data <- function(data_path) {
-  flow <- read_excel(data_path, sheet = 1)
-  sample <- read_excel(data_path, sheet = 2)
   names(flow) <- c('times', 'values')
-  names(sample) <- c('times', 'values')
+  names(sample) <- c('times', paste0('conc_values', 1:(dim(sample)[2]-1)))
 
-  time_format <- '%m-%d-%Y %H:%M:%S'
+
   flow <- flow |>
-    mutate(times = as_datetime(times, format = time_format)) |>
+    mutate(times = as_datetime(times)) |>
     arrange(times) |>
     mutate(mins = time_length(times - times[1], unit = 'mins'))
 
 
   sample <- sample |>
-    mutate(times = as_datetime(times, format = time_format)) |>
+    mutate(times = as_datetime(times)) |>
     arrange(times) |>
     mutate(mins = time_length(times - flow$times[1], unit = 'mins'))
 
 
   joined <- sample |>
     left_join(flow, by = c('times' = 'times'), suffix = c('_sample', '_flow')) |>
-    mutate(
+    transmute(
+      times,
       values = if_else(
-        is.na(values_flow),
+        is.na(values),
         map_dbl(mins_sample, estimate_flow, flow = flow),
-        values_flow
+        values
       ),
       mins = mins_sample,
-      values_sample = NULL,
-      values_flow = NULL,
-      mins_sample = NULL,
-      mins_flow = NULL
     )
 
   list(flow = flow, sample = sample, joined = joined)
