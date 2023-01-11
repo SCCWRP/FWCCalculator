@@ -1,9 +1,6 @@
-clean_data <- function(data) {
-  flow <- data$flow
-  sample <- data$sample
-
+clean_data <- function(flow, sample) {
   names(flow) <- c('times', 'values')
-  names(sample) <- c('times', paste0('conc_values', 1:(dim(sample)[2]-1)))
+  names(sample)[1] <- 'times'
 
 
   flow <- flow |>
