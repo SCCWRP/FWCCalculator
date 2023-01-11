@@ -3,7 +3,7 @@ calculate_bottle_proportions <- function(flow, sample, joined, composite_vol = 1
   sample_row_num <- dim(sample)[1]
   joined_row_num <- dim(joined)[1]
 
-  output <- data.frame(SampleTime = NA, Proportions = NA, Volume = NA)
+  output <- data.frame(SampleTime = NA, AliquotVolume = NA, Proportions = NA, Volume = NA)
 
   if (any(flow_row_num == 0, sample_row_num == 0, joined_row_num == 0)) {
     return(output)
