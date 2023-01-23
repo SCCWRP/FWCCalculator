@@ -32,12 +32,6 @@ server <- function(input, output, session) {
 
   file_validator$add_rule("file", function(file) has_two_columns(file))
 
-  file_validator$add_rule("file", function(file, sheet) has_no_missing_values(file, sheet), sheet = 1)
-  file_validator$add_rule("file", function(file, sheet) has_no_missing_values(file, sheet), sheet = 2)
-
-  file_validator$add_rule("file", function(file, sheet) has_no_negative_values(file, sheet), sheet = 1)
-  file_validator$add_rule("file", function(file, sheet) has_no_negative_values(file, sheet), sheet = 2)
-
   file_validator$add_rule("file", function(file, sheet) has_headers(file, sheet), sheet = 1)
   file_validator$add_rule("file", function(file, sheet) has_headers(file, sheet), sheet = 2)
 
@@ -47,12 +41,15 @@ server <- function(input, output, session) {
   file_validator$add_rule("file", function(file, sheet) has_correct_measurement_format(file, sheet), sheet = 1)
   file_validator$add_rule("file", function(file, sheet) has_correct_measurement_format(file, sheet), sheet = 2)
 
-  observe({
-    file_validator$enable()
-  }) |>
-    bindEvent(req(input$file))
+  file_validator$add_rule("file", function(file, sheet) has_no_missing_values(file, sheet), sheet = 1)
+  file_validator$add_rule("file", function(file, sheet) has_no_missing_values(file, sheet), sheet = 2)
+
+  file_validator$add_rule("file", function(file, sheet) has_no_negative_values(file, sheet), sheet = 1)
+  file_validator$add_rule("file", function(file, sheet) has_no_negative_values(file, sheet), sheet = 2)
 
   observe({
+    file_validator$enable()
+
     shinyjs::toggleState("submit", file_validator$is_valid())
     shinyjs::toggleState("composite_vol", file_validator$is_valid())
     shinyjs::toggleState("lower_mins", file_validator$is_valid())
@@ -98,8 +95,8 @@ server <- function(input, output, session) {
   }) |>
     bindEvent(input$submit)
 
-
   ########
+
 
   # update numeric inputs on invalid values
   observe({
@@ -110,9 +107,6 @@ server <- function(input, output, session) {
     }
   }) |>
     bindEvent(input$redraw_graph)
-
-
-
 
 
   filtered_data <- reactive({
