@@ -60,7 +60,7 @@ has_correct_date_format <- function(file, sheet) {
   }
 }
 
-has_correct_measurement_format <- function(file, sheet = sheet) {
+has_correct_measurement_format <- function(file, sheet) {
   data <- readxl::read_excel(file$datapath, sheet = sheet)
 
   # purrr::map returns a list of the classes of data, which is desirable since the first column of dates
@@ -74,4 +74,17 @@ has_correct_measurement_format <- function(file, sheet = sheet) {
     return(paste0("Incorrect data type on sheet ", sheet, ". Make sure all measurements have a numeric format."))
   }
 
+}
+
+has_headers <- function(file, sheet) {
+  data <- readxl::read_excel(file$datapath, sheet = sheet)
+  headers <- names(data)
+
+  # if any column headers can be coerced to numeric then assume input data is missing headers
+  if (!any(is.na(as.numeric(headers)))) {
+    return(NULL)
+  }
+  else {
+    return(paste0("Missing or incorrectly-formatted header(s) on sheet ", sheet, ". Please add informative headers to the data."))
+  }
 }

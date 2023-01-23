@@ -33,21 +33,19 @@ server <- function(input, output, session) {
   file_validator$add_rule("file", function(file) has_two_columns(file))
 
   file_validator$add_rule("file", function(file, sheet) has_no_missing_values(file, sheet), sheet = 1)
-
   file_validator$add_rule("file", function(file, sheet) has_no_missing_values(file, sheet), sheet = 2)
 
   file_validator$add_rule("file", function(file, sheet) has_no_negative_values(file, sheet), sheet = 1)
-
   file_validator$add_rule("file", function(file, sheet) has_no_negative_values(file, sheet), sheet = 2)
 
-  file_validator$add_rule("file", function(file, sheet) has_correct_date_format(file, sheet), sheet = 1)
+  file_validator$add_rule("file", function(file, sheet) has_headers(file, sheet), sheet = 1)
+  file_validator$add_rule("file", function(file, sheet) has_headers(file, sheet), sheet = 2)
 
+  file_validator$add_rule("file", function(file, sheet) has_correct_date_format(file, sheet), sheet = 1)
   file_validator$add_rule("file", function(file, sheet) has_correct_date_format(file, sheet), sheet = 2)
 
   file_validator$add_rule("file", function(file, sheet) has_correct_measurement_format(file, sheet), sheet = 1)
-
   file_validator$add_rule("file", function(file, sheet) has_correct_measurement_format(file, sheet), sheet = 2)
-
 
   observe({
     file_validator$enable()
@@ -64,7 +62,7 @@ server <- function(input, output, session) {
   }) |>
     bindEvent(req(input$file))
 
-  ###########
+  ########
 
   ######## Initial data input from excel file, set some global values related to data()
   data <- reactive({
