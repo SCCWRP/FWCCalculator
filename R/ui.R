@@ -144,13 +144,13 @@ ui <- fluidPage(
             The first sheet must have exactly two columns, one for the timestamps and one for the flow rate measurements.
           </li>
           <li>
+            The first column of each sheet must be timestamps with both date and time in the 'mm/dd/yy  hh:mm:ss' format. The 'Datetime' columns in the provided template file are already in the correct format.
+          </li>
+          <li>
             Any number of pollutant columns in the second sheet are supported. If you do not have pollutant data, delete the 'Pollutant' columns entirely before uploading the template.
           </li>
           <li>
-            The column headers are required, and can be renamed as needed. The flow rate and pollutant column headers will be used for axis titles and can contain the units of the measurements, for example.
-          </li>
-          <li>
-            The first column of each sheet must be timestamps with both date and time in the 'mm/dd/yyyy  hh:mm:ss AM/PM' format. The 'Datetime' columns in the provided template file are already in the correct format.
+            The column headers are required and can be renamed as needed, but cannot be exclusively numeric characters [0-9]. The flow rate and pollutant column headers will be used for axis titles and can contain the units of the measurements, for example.
           </li>
           <li>
             All flow rate and pollutant measurements must be greater than zero.
