@@ -41,7 +41,6 @@ has_no_missing_values <- function(file, sheet) {
 has_no_negative_values <- function(file, sheet) {
   data <- readxl::read_excel(file$datapath, sheet = sheet)
 
-  print(data |> print(n = nrow(data)))
   if (!any(data < 0)) {
     return(NULL)
   }
@@ -64,7 +63,6 @@ has_correct_date_format <- function(file, sheet) {
 has_correct_measurement_format <- function(file, sheet) {
   data <- readxl::read_excel(file$datapath, sheet = sheet)
 
-  print(data |> print(n = nrow(data)))
   # purrr::map returns a list of the classes of data, which is desirable since the first column of dates
   # will have more than 2 classes
   # then use do.call to iterate through the list and concatenate the resulting classes to ensure they're
