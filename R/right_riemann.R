@@ -6,7 +6,7 @@ right_riemann <- function(sample_bin_breaks, flow) {
 
     flow_slices <- flow |>
       filter(mins %in% x_bounds[1]:x_bounds[2]) |>
-      pull(values)
+      pull(flow_values)
 
     second_slices <- flow |>
       filter(mins %in% x_bounds[1]:x_bounds[2]) |>

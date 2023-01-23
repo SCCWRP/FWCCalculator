@@ -6,11 +6,12 @@ trapezoid <- function(sample_bin_breaks, flow) {
 
     flow_slices <- flow |>
       filter(mins %in% x_bounds[1]:x_bounds[2]) |>
-      pull(values)
+      pull(flow_values)
 
-    min_slices <- flow |>
+    second_slices <- flow |>
       filter(mins %in% x_bounds[1]:x_bounds[2]) |>
-      pull(mins)
+      mutate(seconds = mins*60) |>
+      pull(seconds)
 
     slices <- length(flow_slices)
 
@@ -19,7 +20,7 @@ trapezoid <- function(sample_bin_breaks, flow) {
 
 
     for (j in 1:(slices-1)) {
-      vol <- vol + mean(c(flow_slices[j], flow_slices[j + 1]))*((min_slices[j + 1] - min_slices[j])*60)
+      vol <- vol + mean(c(flow_slices[j], flow_slices[j + 1]))*(second_slices[j + 1] - second_slices[j])
     }
     V[i] <- vol
   }
