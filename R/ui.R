@@ -11,6 +11,10 @@ ui <- fluidPage(
   fluidRow(
     column(
       2,
+      div()
+    ),
+    column(
+      2,
       align = "left",
       fileInput(
         "file",
@@ -67,24 +71,28 @@ ui <- fluidPage(
       textOutput("end_time")
     ),
     column(
-      6,
+      2,
       align = "left",
       br(),
-      actionButton("reset_button", "Reload Application"),
+      actionButton("reset_button", "Reload Application", width = "175px"),
       br(),
       br(),
       br(),
       shinyjs::disabled(
-        actionButton("redraw_graph", "Redraw Graph(s)")
+        actionButton("redraw_graph", "Redraw Graph(s)", width = "175px")
       )
+    ),
+    column(
+      2,
+      div()
     )
   ),
   fluidRow(
     column(
-      2
+      4
     ),
     column(
-      10,
+      4,
       textInput(
         inputId = "title",
         label = "Graph Title",
@@ -92,6 +100,10 @@ ui <- fluidPage(
         value = "",
         width = "455px"
       )
+    ),
+    column(
+      4,
+      div()
     )
   ),
   tabsetPanel(
@@ -102,7 +114,7 @@ ui <- fluidPage(
       HTML("
         <ol>
           <li>
-            Download the Excel template file ",), downloadLink("download_template", label = "here"), HTML(", and overwrite it with your data.
+            Download the Excel template file ",), downloadLink("download_template", label = "here"), HTML(" and overwrite it with your data. See the Data Requirements section below. <br><strong>NOTE</strong>: a 'download.htm' file may be downloaded instead of the template Excel file if the link is clicked too soon after launching the application. This is a known issue with the 'shiny' R package. Please allow a few minutes for the correct download to become available.
           </li>
           <li>
             Upload your data by clicking the 'Browse' button, selecting the updated Excel spreadsheet, and clicking the 'Submit' button. The calculator will generate the aliquot volume table as well as the hydrograph and pollutograph(s), depending on the uploaded data. If pollutant data is provided, the calculator will also provide the Event Mean Concentration for each of the specified pollutants.
@@ -138,7 +150,7 @@ ui <- fluidPage(
             The column headers are required, and can be renamed as needed. The flow rate and pollutant column headers will be used for axis titles and can contain the units of the measurements, for example.
           </li>
           <li>
-            The first column of each sheet must be timestamps with both date and time. The 'Datetime' columns in the provided template file are already in the correct format.
+            The first column of each sheet must be timestamps with both date and time in the 'mm/dd/yyyy  hh:mm:ss AM/PM' format. The 'Datetime' columns in the provided template file are already in the correct format.
           </li>
           <li>
             All flow rate and pollutant measurements must be greater than zero.
@@ -146,10 +158,10 @@ ui <- fluidPage(
           <li>
             There may not be any missing values in the spreadsheet.
           </li>
-        </ul>"),
-      hr(),
-      h3("Technical Details"),
-      HTML("The hydrograph volume is calculated by a trapezoidal approximation, with partitions set at every data point. The aliquot volume values are allocated to each sample timestamp by using the area under the curve between the midpoint of the previous sample and the current sample and the current sample and the next sample. For example if we have samples 1, 2, and 3 at times 10, 14, and 26, then the area under the curve between times 12 and 20 will be allocated to sample 2, since the midpoint between 10 and 14 is 12, and the midpoint between 14 and 26 is 20.")
+        </ul>")#,
+      # hr(),
+      # h3("Technical Details"),
+      # HTML("The hydrograph volume is calculated by a trapezoidal approximation, with partitions set at every data point. The aliquot volume values are allocated to each sample timestamp by using the area under the curve between the midpoint of the previous sample and the current sample and the current sample and the next sample. For example if we have samples 1, 2, and 3 at times 10, 14, and 26, then the area under the curve between times 12 and 20 will be allocated to sample 2, since the midpoint between 10 and 14 is 12, and the midpoint between 14 and 26 is 20.")
     ),
     id = "full_page"
   )
