@@ -34,18 +34,19 @@ has_no_missing_values <- function(file, sheet) {
     return(NULL)
   }
   else {
-    return(paste0("Missing values present on sheet ", sheet, " on rows ", paste(sort(unique(which(is.na(data)) %% dim(data)[1] + 1)), collapse = ", "), "."))
+    return(paste0("Missing values present on sheet ", sheet, " on row(s) ", paste(sort(unique(which(is.na(data)) %% dim(data)[1] + 1)), collapse = ", "), "."))
   }
 }
 
 has_no_negative_values <- function(file, sheet) {
   data <- readxl::read_excel(file$datapath, sheet = sheet)
 
+  print(data |> print(n = nrow(data)))
   if (!any(data < 0)) {
     return(NULL)
   }
   else {
-    return(paste0("Negative values present on sheet ", sheet, " on rows ", paste(sort(unique(which(data < 0) %% dim(data)[1] + 1)), collapse = ", "), "."))
+    return(paste0("Negative values present on sheet ", sheet, " on row(s) ", paste(sort(unique(which(data < 0) %% dim(data)[1] + 1)), collapse = ", "), "."))
   }
 }
 
@@ -63,6 +64,7 @@ has_correct_date_format <- function(file, sheet) {
 has_correct_measurement_format <- function(file, sheet) {
   data <- readxl::read_excel(file$datapath, sheet = sheet)
 
+  print(data |> print(n = nrow(data)))
   # purrr::map returns a list of the classes of data, which is desirable since the first column of dates
   # will have more than 2 classes
   # then use do.call to iterate through the list and concatenate the resulting classes to ensure they're
@@ -81,7 +83,7 @@ has_headers <- function(file, sheet) {
   headers <- names(data)
 
   # if any column headers can be coerced to numeric then assume input data is missing headers
-  if (!any(is.na(as.numeric(headers)))) {
+  if (suppressWarnings(all(is.na(as.numeric(headers))))) {
     return(NULL)
   }
   else {
