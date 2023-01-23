@@ -1,18 +1,19 @@
 clean_data <- function(flow, sample) {
-  names(flow) <- c('times', 'values')
-  names(sample)[1] <- 'times'
-
 
   flow <- flow |>
-    mutate(times = as_datetime(times)) |>
+    rename_with(.fn = function(x) "times", .cols = 1) |>
+    mutate(times = lubridate::as_datetime(times)) |>
     arrange(times) |>
-    mutate(mins = time_length(times - times[1], unit = 'mins'))
+    mutate(mins = lubridate::time_length(times - times[1], unit = 'mins')) |>
+    reshape2::melt(id.vars = c('mins', 'times'), variable.name = "rate", value.name = "flow_values")
 
 
   sample <- sample |>
-    mutate(times = as_datetime(times)) |>
+    rename_with(.fn = function(x) "times", .cols = 1) |>
+    mutate(times = lubridate::as_datetime(times)) |>
     arrange(times) |>
-    mutate(mins = time_length(times - flow$times[1], unit = 'mins'))
+    mutate(mins = lubridate::time_length(times - flow$times[1], unit = 'mins')) |>
+    reshape2::melt(id.vars = c('mins', 'times'), variable.name = "conc", value.name = "conc_values")
 
 
   joined <- sample |>
@@ -20,12 +21,13 @@ clean_data <- function(flow, sample) {
     transmute(
       times,
       values = if_else(
-        is.na(values),
-        map_dbl(mins_sample, estimate_flow, flow = flow),
-        values
+        is.na(flow_values),
+        purrr::map_dbl(mins_sample, estimate_flow, flow = flow),
+        flow_values
       ),
       mins = mins_sample,
-    )
+    ) |>
+    distinct()
 
   list(flow = flow, sample = sample, joined = joined)
 }

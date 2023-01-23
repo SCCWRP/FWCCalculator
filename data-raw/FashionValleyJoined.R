@@ -1,19 +1,20 @@
 flow <- readxl::read_excel("data-raw/FashionValley_two_conc.xlsx", sheet = 1)
 sample <- readxl::read_excel("data-raw/FashionValley_two_conc.xlsx", sheet = 2)
 
-names(flow) <- c("times", "values")
-
 flow <- flow |>
+  dplyr::rename_with(.fn = function(x) "times", .cols = 1) |>
   dplyr::mutate(times = lubridate::as_datetime(times)) |>
   dplyr::arrange(times) |>
-  dplyr::mutate(mins = lubridate::time_length(times - times[1], unit = 'mins'))
+  dplyr::mutate(mins = lubridate::time_length(times - times[1], unit = 'mins')) |>
+  reshape2::melt(id.vars = c('mins', 'times'), variable.name = "rate", value.name = "flow_values")
 
 
 sample <- sample |>
   dplyr::rename_with(.fn = function(x) "times", .cols = 1) |>
   dplyr::mutate(times = lubridate::as_datetime(times)) |>
   dplyr::arrange(times) |>
-  dplyr::mutate(mins = lubridate::time_length(times - flow$times[1], unit = 'mins'))
+  dplyr::mutate(mins = lubridate::time_length(times - flow$times[1], unit = 'mins')) |>
+  reshape2::melt(id.vars = c('mins', 'times'), variable.name = "conc", value.name = "conc_values")
 
 
 FashionValleyJoined <- sample |>
@@ -21,12 +22,12 @@ FashionValleyJoined <- sample |>
   dplyr::transmute(
     times,
     values = dplyr::if_else(
-      is.na(values),
+      is.na(flow_values),
       purrr::map_dbl(mins_sample, estimate_flow, flow = flow),
-      values
+      flow_values
     ),
     mins = mins_sample,
-  )
-
+  ) |>
+  dplyr::distinct()
 
 usethis::use_data(FashionValleyJoined, overwrite = TRUE)
