@@ -1,13 +1,13 @@
 name: FWCCalculator
-title:
+title: FWCCalculator
 username:
 account: sccwrp
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 7901093
-bundleId: 6701480
+bundleId: 6769540
 url: https://sccwrp.shinyapps.io/FWCCalculator/
-when: 1672946166.12039
-lastSyncTime: 1672946166.12041
+when: 1674584011.68442
+lastSyncTime: 1674584011.68444
 asMultiple: FALSE
 asStatic: FALSE
