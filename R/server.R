@@ -71,6 +71,7 @@ server <- function(input, output, session) {
 
     xmin <- min(data_out$flow$mins)
     xmax <- max(data_out$flow$mins)
+    # set the initial start and end filters so that filtering functionality is visible/apparent
     updateNumericInput(inputId = "lower_mins", value = round(xmin + 0.5*stats::sd(data_out$flow$mins), -1))
     updateNumericInput(inputId = "upper_mins", value = round(xmax - 0.5*stats::sd(data_out$flow$mins), -1))
 
@@ -78,12 +79,13 @@ server <- function(input, output, session) {
   }) |>
     bindEvent(input$submit)
 
-  # delay so that all filtered data can get updated correctly
+  # delay so that all filtered data has time to get updated correctly before drawing graphs
   observe({
     shinyjs::delay(10, shinyjs::click("redraw_graph"))
   }) |>
     bindEvent(data())
 
+  # graph limits
   ymin <- 0
   ymax <- reactive({
     max(data()$flow$flow_values) + 0.05*(max(data()$flow$flow_values) - ymin)
@@ -108,7 +110,8 @@ server <- function(input, output, session) {
   }) |>
     bindEvent(input$redraw_graph)
 
-
+  # data that is filtered between the start and end time inputs, used for drawing graphs,
+  # aliquot and EMC calculations
   filtered_data <- reactive({
     flow <- data()$flow
     sample <- data()$sample
@@ -145,13 +148,14 @@ server <- function(input, output, session) {
 
 
   ######## check if concentration/pollutant data is included
+  # data types/other checks done with file_validator, so only need to check number of columns in sheet
   has_conc <- reactive({
     ncol(data()$sample) > 2
   })
 
   ########
 
-  ######## tab control based on whether pollutant data is included
+  ######## tab control based on whether pollutant data is included, updates dynamically
   tabs_list <- reactiveValues(data = list("Flow-Weighting" = NULL, "Event Mean Concentration" = NULL))
 
   observe({
@@ -412,7 +416,7 @@ server <- function(input, output, session) {
   ########
 
   ######## download handlers for graphs, tables, and data template
-  # shiny currently has a bug where downloads don't work right after app loads
+  # shiny currently has a bug where downloads don't work immediately after app loads
   # (downloads a 'download.htm' file instead)
   # this happens with the datatemplate if user tries to download the template
   # until about 30 seconds after loading
@@ -434,7 +438,7 @@ server <- function(input, output, session) {
     }
   )
 
-  # number of rows of dependent on number of generated plots
+  # number of rows dependent on number of generated plots
   output$download_pollutograph <- downloadHandler(
     filename = function() {
       paste0("Pollutograph-", format(Sys.time(), "%Y-%m-%d-%H%M%S"), ".png")
