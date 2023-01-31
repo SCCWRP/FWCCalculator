@@ -38,6 +38,8 @@ server <- function(input, output, session) {
   file_validator$add_rule("file", function(file, sheet) has_correct_date_format(file, sheet), sheet = 1)
   file_validator$add_rule("file", function(file, sheet) has_correct_date_format(file, sheet), sheet = 2)
 
+  file_validator$add_rule("file", function(file) has_sample_times_in_range(file))
+
   file_validator$add_rule("file", function(file, sheet) has_correct_measurement_format(file, sheet), sheet = 1)
   file_validator$add_rule("file", function(file, sheet) has_correct_measurement_format(file, sheet), sheet = 2)
 

@@ -88,3 +88,25 @@ has_headers <- function(file, sheet) {
     return(paste0("Missing or incorrectly-formatted header(s) on sheet ", sheet, ". Please add informative headers to the data."))
   }
 }
+
+has_sample_times_in_range <- function(file) {
+  flow <- readxl::read_excel(file$datapath, sheet = 1)
+  sample <- readxl::read_excel(file$datapath, sheet = 2)
+
+  start_time_flow <- flow[, 1] |>
+    utils::head(1) |>
+    pull()
+  end_time_flow <- flow[, 1] |>
+    utils::tail(1) |>
+    pull()
+
+  all_samples_after_start <- all(lubridate::time_length(pull(sample[, 1]) - start_time_flow, unit = 'min') > 0)
+  all_samples_before_end <- all(lubridate::time_length(end_time_flow - pull(sample[, 1]), unit = 'min') > 0)
+
+  if (all_samples_after_start & all_samples_before_end) {
+    return(NULL)
+  }
+  else {
+    return("Not all sample timestamps within flow measurement timestamp range. Please adjust sample timestamps or flow measurement timestamps accordingly.")
+  }
+}
