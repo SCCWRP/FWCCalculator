@@ -1,4 +1,8 @@
 estimate_flow <- function(sample_min, flow) {
+  if (sample_min %in% flow$mins) {
+    return(flow$flow_values[flow$mins == sample_min])
+  }
+
   # if the sample is taken between two recorded flow measurements, we need to
   # use a linear interpolation to match the sample time with an estimated flow
   prev_flow <- flow |>
