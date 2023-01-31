@@ -1,8 +1,9 @@
 Package: FWCCalculator
 Title: Calculate Flow Weights and Event Mean Concentrations from Water Quality Data
 Version: 0.1
-Authors@R: 
-    person("Nicholas", "Lombardo", email = "nicholasl@sccwrp.org", role = c("aut", "cre"))
+Authors@R: c(
+    person("Nicholas", "Lombardo", email = "nicholasl@sccwrp.org", role = c("aut", "cre")),
+    person("Edward", "Tiernan", email = "edwardt@sccwrp.org", role = "ctb"))
 Description: A Shiny app for calculating the flow-weighting and event mean concentration of water quality data with discrete samples.
 License: MIT + file LICENSE
 Encoding: UTF-8
