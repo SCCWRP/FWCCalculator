@@ -10,4 +10,4 @@ This web application has been developed to enable consistent, transparent, easil
 
 The application is currently hosted at https://sccwrp.shinyapps.io/FWCCalculator/, with code available under an MIT license at https://github.com/SCCWRP/FWCCalculator/. 
 
-The application was subject to a Data Product Quality Assurance review process per SCCWRP policy; documentation of which can be found at https://github.com/SCCWRP/FWCCalculator/QA Documents/.
+The application was subject to a Data Product Quality Assurance review process per SCCWRP policy; documentation of which can be found at https://github.com/SCCWRP/FWCCalculator/QA_Documents/.
