@@ -9,3 +9,5 @@ The “gold standard” of stormwater control measure (SCM) performance monitori
 This web application has been developed to enable consistent, transparent, easily applied calculations for post-storm flow-weighting and compositing and/or to generate an EMC from a pollutograph. The web app provides flow-weighted compositing instructions based on a user-uploaded hydrograph and times of sample collection, or returns an EMC based on a user-uploaded hydrograph and pollutograph. Total hydrograph volume is also returned so that users may determine a mass load from the EMC.
 
 The application is currently hosted at https://sccwrp.shinyapps.io/FWCCalculator/, with code available under an MIT license at https://github.com/SCCWRP/FWCCalculator/. 
+
+The application was subject to a Data Product Quality Assurance review process per SCCWRP policy; documentation of which can be found at https://github.com/SCCWRP/FWCCalculator/QA Documents/.
