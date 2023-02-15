@@ -16,7 +16,7 @@ The EMC parameter, fundamentally a pollutant concentration, is the ratio of the 
 
 $$\text{EMC} = \frac{M}{V} = \frac{\int_{0}^{t} C_t Q_t dt}{\int_{0}^{t} Q_t dt}$$
 
-Pollutant mass, $M$, is equal to the integral of instantaneous concentration, $C_t$, multiplied by flow, $Q_t$, while total volume, $V$, is the time integral of flow. 
+Pollutant mass, $M$, is equal to the integral of instantaneous concentration, $C_t$, multiplied by flow, $Q_t$, while total volume, $V$, is the time integral of flow. The application returns the total volume calculated by the integral of the hydrograph with time; the user can multiply the EMC by the total storm volume to yield mass loading. 
 
 ### Method
 
