@@ -22,7 +22,7 @@ Pollutant mass, $M$, is equal to the integral of instantaneous concentration, $C
 
 The practical problem of solving for an EMC using real world data is evaluating the integrals in Equation 1 using discrete data points. Commonly, the continuous definition of EMC is recast in a discrete form, written as
 
-$\text{EMC} = \frac{\int_{0}^{t} C_t Q_t dt}{\int_{0}^{t} Q_t dt} \approx \frac{ \sum_{i=0}^{k} C_{i} V_{i}} {2} $
+$$ \text{EMC} = \frac{\int_{0}^{t} C_t Q_t dt}{\int_{0}^{t} Q_t dt} \approx \frac{ \sum_{i=0}^{k} C_{i} V_{i}} {2} $$
 
 where $k$ is the number of pollutograph samples taken, $C_i$ is the concentration of the $i^{th}$ water quality sample taken, and $V_i$ is the flow volume that can be attributed to sample $C_i$. Equation 2 effectively represents the EMC as a volume-weighted average concentration, wherein the volume weights are computed as the area under the hydrograph curve that is attributable to a given pollutograph value. In this application, the area under the hydrograph curve (i.e., the volume weight) is computed using a trapezoidal approximation. An additional hurdle imposed by the discrete sample data is to determine what portion of the hydrograph data to use as a volume weight.  This application uses a central attribution scheme, wherein a hydrograph segment is attributed to the nearest sample in time.  Taken together, the trapezoidal approximation and central attribution schemes yield a volume weight, $V_i$, for sample $i$ written as
 
