@@ -28,7 +28,7 @@ where $k$ is the number of pollutograph samples taken, $C_i$ is the concentratio
 
 $$ V_i = \frac{1}{2} \sum_{i-\frac{1}{2}}^{i+\frac{1}{2}} ( Q_{t+1} + Q_{t-1} ) \Delta t $$
 
-where $i \pm \frac{1}{2}$ corresponds to the time, $t_{i \pm \frac{1}{2}}$, halfway between when sample $i$ and samples $i \pm \frac{1}{2}$ were taken. The time interval, $\Delta t$, is the interval between successive hydrograph values, $Q_t$.
+where $i \pm \frac{1}{2}$ corresponds to the time, $t_{i \pm \frac{1}{2}}$, halfway between when sample $i$ and samples $i \pm 1$ were taken. The time interval, $\Delta t$, is the interval between successive hydrograph values, $Q_t$.
 
 
 ### Supplemental Documentation
