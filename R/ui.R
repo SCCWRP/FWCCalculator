@@ -114,16 +114,16 @@ ui <- fluidPage(
       HTML("
         <ol>
           <li>
-            Download the Excel template file ",), downloadLink("download_template", label = "here"), HTML(" and overwrite it with your data. See the Data Requirements section below. <br><strong>NOTE</strong>: a 'download.htm' file may be downloaded instead of the template Excel file if the link is clicked too soon after launching the application. This is a known issue with the 'shiny' R package which was used to develop this application. Please allow a few minutes for the correct download to become available.
+            Download the Excel template file ",), downloadLink("download_template", label = "here"), HTML(" and overwrite it with your data. See the Data Requirements section below. <br><strong>NOTE</strong>: a 'download.htm' file may be downloaded instead of the template Excel file if the link is clicked too soon after launching the application. This is a known issue with the 'shiny' R package which was used to develop this application. Please allow a few minutes before downloading the template.
           </li>
           <li>
             Upload your data by clicking the 'Browse' button, selecting the updated Excel spreadsheet, and clicking the 'Submit' button. The calculator will generate the aliquot volume table as well as the hydrograph and pollutograph(s), depending on the uploaded data. If pollutant data is provided, the calculator will also provide the Event Mean Concentration for each of the specified pollutants.
           </li>
           <li>
-            Use the 'Start Time' and 'End Time' inputs to filter the data to the appropriate time range. These values are measured in minutes after the start of the provided data.
+            Use the 'Start Time' and 'End Time' inputs to filter the data to the appropriate time range. Elapsed time in minutes is presented. The grayed-out sections of the graph will <i>not</i> be included in the aliquot volume and event mean concentration calculations.
           </li>
           <li>
-            After changing the 'Start Time' and 'End Time', click the 'Redraw Graph(s)' button to regenerate the aliquot volume table, hydrograph, and pollutograph(s), filtered to the provided times. The grayed-out sections of the graph will <i>not</i> be included in the aliquot volume and event mean concentration calculations.
+            After changing the 'Start Time' and 'End Time', click the 'Redraw Graph(s)' button to regenerate the aliquot volume table, hydrograph, and pollutograph(s), filtered to the provided times.
           </li>
           <li>
             The 'Composite Vol.' input is used in the aliquot volume calculation such that the sum of the aliquot volumes will be equal to the composite volume value entered here, measured in mL.

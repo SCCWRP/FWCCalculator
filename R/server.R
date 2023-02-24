@@ -412,7 +412,7 @@ server <- function(input, output, session) {
     sample <- data()$sample
     joined <- data()$joined
 
-    vol_out <- sum(calculate_bottle_proportions(flow, joined)$Volume)
+    vol_out <- round(sum(calculate_bottle_proportions(flow, joined)$Volume), 1)
     paste('Total Hydrograph Volume:', vol_out, input$vol_units)
   })
   ########
