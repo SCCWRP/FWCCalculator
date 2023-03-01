@@ -46,7 +46,7 @@ where $i \pm \frac{1}{2}$ corresponds to the time, $t_{i \pm \frac{1}{2}}$, half
 
 ### Supplemental Documentation
 
-The application is currently hosted at https://sccwrp.shinyapps.io/FWCCalculator/, with code available under an MIT license at https://github.com/SCCWRP/FWCCalculator/. 
+The application is currently hosted at https://sccwrp.shinyapps.io/FWC_EMC_Calculator/, with code available under an MIT license at https://github.com/SCCWRP/FWCCalculator/. 
 
 A python version of the flow-weighting calculator from hydrograph and sample data was developed for a BMP monitoring project with the California Department of Transportation. The python script and supplemental data are available at https://github.com/SCCWRP/EMC_calculator_from_depth.
 
