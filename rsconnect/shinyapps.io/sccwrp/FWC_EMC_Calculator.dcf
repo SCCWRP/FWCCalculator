@@ -1,0 +1,13 @@
+name: FWC_EMC_Calculator
+title: FWC_EMC_Calculator
+username:
+account: sccwrp
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 8450204
+bundleId: 6904104
+url: https://sccwrp.shinyapps.io/FWC_EMC_Calculator/
+when: 1677703627.32897
+lastSyncTime: 1677703627.32898
+asMultiple: FALSE
+asStatic: FALSE
