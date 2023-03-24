@@ -1,3 +1,6 @@
+markdown_text <- httr::GET("https://raw.githubusercontent.com/SCCWRP/FWCCalculator/main/README.md") |>
+  httr::content()
+
 ui <- fluidPage(
   shinyjs::useShinyjs(),
   tags$head(tags$style(paste0('body {font-size: ', global_font_size, 'px}
@@ -6,6 +9,13 @@ ui <- fluidPage(
                               #volume2 {font-weight: bold}
                               #start_time {color: Gray}
                               #end_time {color: Gray}'))),
+
+  tags$div(HTML("<script type='text/x-mathjax-config' >
+            MathJax.Hub.Config({
+            tex2jax: {inlineMath: [['$','$']]}
+            });
+            </script >
+            ")),
 
   titlePanel("Flow-Weighting and Compositing Calculator"),
   fluidRow(
@@ -138,19 +148,57 @@ ui <- fluidPage(
       HTML("The uploaded Excel spreadsheet must conform to the following requirements:
         <ul>
           <li>
-            It must contain exactly two sheets, one for the flow rate measurement data, and one for the sample timestamps/pollutant measurement data.
+            Must contain exactly two sheets, in the following order:
           </li>
+          <ul>
+            <li>
+              Sheet 1: flow rate measurement data
+            </li>
+            <li>
+              Sheet 2: sample collection timestamps and pollutant measurement data (where applicable)
+            </li>
+          </ul>
           <li>
-            The first sheet must have exactly two columns, one for the timestamps and one for the flow rate measurements.
+            The flow rate measurement data sheet (Sheet 1) must have exactly two columns:
           </li>
+          <ul>
+            <li>
+              Col 1: timestamps in 'mm/dd/yy hh:mm:ss' format. Date and time must be provided.
+            </li>
+            <ul>
+              <li>
+                The 'Datetime' column in the provided template file is already in the correct format.
+              </li>
+            </ul>
+            <li>
+              Col 2: flow rate measurements
+            </li>
+          </ul>
           <li>
-            The first column of each sheet must be timestamps with both date and time in the 'mm/dd/yy  hh:mm:ss' format. The 'Datetime' columns in the provided template file are already in the correct format.
+            The sample collection timestamps and pollutant measurement sheet (Sheet 2) may have any number of columns:
           </li>
+          <ul>
+            <li>
+              Col 1: timestamps when water quality samples were collected in 'mm/dd/yy hh:mm:ss' format. Date and time must be provided.
+            </li>
+            <ul>
+              <li>
+                The 'Datetime' column in the provided template file is already in the correct format.
+              </li>
+            </ul>
+            <li>
+              Col 2...n: pollutant concentrations, if/where available
+            </li>
+            <li>
+              Any number of pollutant columns in the second sheet are supported.
+            </li>
+            <li>
+              <strong>If you do not have pollutant data, delete the 'Pollutant' columns entirely before uploading the template. Do not delete Sheet 2.</strong>
+            </li>
+          </ul>
           <li>
-            Any number of pollutant columns in the second sheet are supported. If you do not have pollutant data, delete the 'Pollutant' columns entirely before uploading the template.
-          </li>
-          <li>
-            The column headers are required and can be renamed as needed, but cannot be exclusively numeric characters [0-9]. The flow rate and pollutant column headers will be used for axis titles and can contain the units of the measurements, for example.
+            The column headers are required and can be renamed as needed, but cannot be exclusively numeric characters [0-9]. <br>
+            The flow rate and pollutant column headers will be used for axis titles and can contain the units of the measurements, for example.
           </li>
           <li>
             All flow rate and pollutant measurements must be greater than zero.
@@ -162,6 +210,13 @@ ui <- fluidPage(
       # hr(),
       # h3("Technical Details"),
       # HTML("The hydrograph volume is calculated by a trapezoidal approximation, with partitions set at every data point. The aliquot volume values are allocated to each sample timestamp by using the area under the curve between the midpoint of the previous sample and the current sample and the current sample and the next sample. For example if we have samples 1, 2, and 3 at times 10, 14, and 26, then the area under the curve between times 12 and 20 will be allocated to sample 2, since the midpoint between 10 and 14 is 12, and the midpoint between 14 and 26 is 20.")
+    ),
+    tabPanel(
+      "Methods",
+      markdown_text |>
+        commonmark::markdown_html() |>
+        HTML() |>
+        withMathJax()
     ),
     id = "full_page"
   )

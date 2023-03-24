@@ -408,9 +408,9 @@ server <- function(input, output, session) {
   ######## volume text output
   # can't output same thing in two html divs, so save same output to 2 vars
   output$volume1 <- output$volume2 <- renderText({
-    flow <- data()$flow
-    sample <- data()$sample
-    joined <- data()$joined
+    flow <- filtered_data()$flow
+    sample <- filtered_data()$sample
+    joined <- filtered_data()$joined
 
     vol_out <- round(sum(calculate_bottle_proportions(flow, joined)$Volume), 1)
     paste('Total Hydrograph Volume:', vol_out, input$vol_units)
