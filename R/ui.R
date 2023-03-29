@@ -171,7 +171,7 @@ ui <- fluidPage(
               </li>
             </ul>
             <li>
-              Col 2: flow rate measurements
+              Col 2: flow rate measurements. <strong> Units must be volume/second. </strong>
             </li>
           </ul>
           <li>
@@ -197,8 +197,10 @@ ui <- fluidPage(
             </li>
           </ul>
           <li>
-            The column headers are required and can be renamed as needed, but cannot be exclusively numeric characters [0-9]. <br>
-            The flow rate and pollutant column headers will be used for axis titles and can contain the units of the measurements, for example.
+            The column headers are required and can be renamed as needed, but cannot be exclusively numeric characters [0-9].
+          </li>
+          <li>
+            The flow rate and pollutant column headers will be used for axis titles and can contain the units of the measurements.
           </li>
           <li>
             All flow rate and pollutant measurements must be greater than zero.
