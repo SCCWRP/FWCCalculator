@@ -43,7 +43,9 @@ Equation 3
   
 where $i \pm \frac{1}{2}$ corresponds to the time, $t_{i \pm \frac{1}{2}}$, halfway between when sample $i$ and samples $i \pm 1$ were taken. The time interval, $\Delta t$, is the interval between successive hydrograph values, $Q_t$.
 
-![Screenshot](central_attribution (002).png)
+<p align="center">
+  <img src="central_attribution (002).png" width="350" title="hover text">
+</p>
 
 ### Supplemental Documentation
 
