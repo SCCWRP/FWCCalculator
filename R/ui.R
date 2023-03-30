@@ -208,10 +208,7 @@ ui <- fluidPage(
           <li>
             There may not be any missing values in the spreadsheet.
           </li>
-        </ul>")#,
-      # hr(),
-      # h3("Technical Details"),
-      # HTML("The hydrograph volume is calculated by a trapezoidal approximation, with partitions set at every data point. The aliquot volume values are allocated to each sample timestamp by using the area under the curve between the midpoint of the previous sample and the current sample and the current sample and the next sample. For example if we have samples 1, 2, and 3 at times 10, 14, and 26, then the area under the curve between times 12 and 20 will be allocated to sample 2, since the midpoint between 10 and 14 is 12, and the midpoint between 14 and 26 is 20.")
+        </ul>")
     ),
     tabPanel(
       "Methods",

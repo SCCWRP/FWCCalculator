@@ -74,8 +74,12 @@ server <- function(input, output, session) {
     xmin <- min(data_out$flow$mins)
     xmax <- max(data_out$flow$mins)
     # set the initial start and end filters so that filtering functionality is visible/apparent
-    updateNumericInput(inputId = "lower_mins", value = round(xmin + 0.5*stats::sd(data_out$flow$mins), -1))
-    updateNumericInput(inputId = "upper_mins", value = round(xmax - 0.5*stats::sd(data_out$flow$mins), -1))
+    # updateNumericInput(inputId = "lower_mins", value = round(xmin + 0.5*stats::sd(data_out$flow$mins), -1))
+    # updateNumericInput(inputId = "upper_mins", value = round(xmax - 0.5*stats::sd(data_out$flow$mins), -1))
+    # keep at 0 instead
+    updateNumericInput(inputId = "lower_mins", value = 0)
+    updateNumericInput(inputId = "upper_mins", value = xmax)
+
 
     data_out
   }) |>
@@ -106,8 +110,16 @@ server <- function(input, output, session) {
   observe({
     if (input$lower_mins < xmin | is.na(input$lower_mins)) {
       updateNumericInput(session = session, inputId = "lower_mins", value = xmin)
-    } else if (input$upper_mins > xmax() | is.na(input$upper_mins)) {
+    }
+    if (input$upper_mins > xmax() | is.na(input$upper_mins)) {
       updateNumericInput(session = session, inputId = "upper_mins", value = xmax())
+    }
+    if (input$lower_mins > xmax()) {
+      updateNumericInput(session = session, inputId = "lower_mins", value = xmax() - 30)
+      updateNumericInput(session = session, inputId = "upper_mins", value = xmax())
+    }
+    if (input$lower_mins > input$upper_mins) {
+      updateNumericInput(session = session, inputId = "upper_mins", value = ifelse(input$lower_mins + 30 <= xmax(), input$lower_mins + 30, xmax()))
     }
   }) |>
     bindEvent(input$redraw_graph)
@@ -254,8 +266,8 @@ server <- function(input, output, session) {
     joined <- data()$joined
 
     ggplot() +
-      geom_point(data = joined, aes(x = mins, y = values, color = 'Sample Collected')) +
-      geom_line(data = flow, aes(x = mins, y = flow_values, color = 'Flow')) +
+      geom_line(data = flow, aes(x = mins, y = flow_values, color = 'Flow'), linewidth = 1.5) +
+      geom_point(data = joined, aes(x = mins, y = values, color = 'Sample Collected'), size = 3) +
       coord_cartesian(xlim = c(xmin, xmax()), ylim = c(ymin, ymax()), expand = FALSE) +
       scale_x_continuous(breaks = scales::breaks_extended(n = 20)) +
       labs(x = 'Time since start (min)', y = flow$rate[1], color = NULL, title = input$title) +
@@ -294,9 +306,9 @@ server <- function(input, output, session) {
       scale_factor <- max(sample$conc_values)/max(flow$flow_values)
 
       ggplot() +
-        geom_line(data = flow, aes(x = mins, y = flow_values, color = 'Flow')) +
+        geom_line(data = flow, aes(x = mins, y = flow_values, color = 'Flow'), linewidth = 1.5) +
         geom_point(data = sample, aes(x = mins, y = conc_values/scale_factor,
-                                      color = 'Sample Concentration'), shape = 17) +
+                                      color = 'Sample Concentration'), shape = 17, size = 3) +
         coord_cartesian(xlim = c(0, xmax()), ylim = c(ymin, ymax()), expand = FALSE) +
         scale_x_continuous(breaks = scales::breaks_extended(n = 20)) +
         scale_y_continuous(sec.axis = sec_axis(~ . * scale_factor, name = sample$conc[1])) +
