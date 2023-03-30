@@ -279,6 +279,7 @@ server <- function(input, output, session) {
         legend.key = element_blank(),
         axis.text.x = element_text(angle = 30, vjust = 0.5)
       ) +
+      scale_color_manual(values = c("#f8766d", "#357bb7")) +
       guides(
         color = guide_legend(
           override.aes = list(shape = c(NA, 16), linetype = c(1, NA))
@@ -320,6 +321,7 @@ server <- function(input, output, session) {
           legend.key = element_blank(),
           axis.text.x = element_text(angle = 30, vjust = 0.5)
         ) +
+        scale_color_manual(values = c("#f8766d", "#357bb7")) +
         guides(
           color = guide_legend(
             override.aes = list(shape = c(NA, 17), linetype = c(1, NA))
