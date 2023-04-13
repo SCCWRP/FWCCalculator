@@ -55,7 +55,7 @@ server <- function(input, output, session) {
     shinyjs::toggleState("submit", file_validator$is_valid())
     shinyjs::toggleState("composite_vol", file_validator$is_valid())
     shinyjs::toggleState("lower_mins", file_validator$is_valid())
-    shinyjs::toggleState("vol_units", file_validator$is_valid())
+    shinyjs::toggleState("flow_units", file_validator$is_valid())
     shinyjs::toggleState("upper_mins", file_validator$is_valid())
     shinyjs::toggleState("redraw_graph", file_validator$is_valid())
   }) |>
@@ -140,7 +140,7 @@ server <- function(input, output, session) {
     joined_filtered <-  joined |>
       filter(between(mins, input$lower_mins, input$upper_mins))
 
-    proportions <- calculate_bottle_proportions(flow_filtered, joined_filtered, input$composite_vol)
+    proportions <- calculate_bottle_proportions(flow_filtered, joined_filtered, flow_units()$time_unit, input$composite_vol)
 
     list(flow = flow_filtered, sample = sample_filtered, joined = joined_filtered, proportions = proportions)
   }) |>
@@ -168,6 +168,18 @@ server <- function(input, output, session) {
   })
 
   ########
+
+  ######## record flow units
+
+  flow_units <- reactive({
+    vol_unit = strsplit(input$flow_units, "/")[[1]][1]
+    time_unit = strsplit(input$flow_units, "/")[[1]][2]
+    list(vol_unit = vol_unit, time_unit = time_unit)
+  })
+
+
+  ########
+
 
   ######## tab control based on whether pollutant data is included, updates dynamically
   tabs_list <- reactiveValues(data = list("Flow-Weighting" = NULL, "Event Mean Concentration" = NULL))
@@ -270,7 +282,7 @@ server <- function(input, output, session) {
       geom_point(data = joined, aes(x = mins, y = values, color = 'Sample Collected'), size = 3) +
       coord_cartesian(xlim = c(xmin, xmax()), ylim = c(ymin, ymax()), expand = FALSE) +
       scale_x_continuous(breaks = scales::breaks_extended(n = 20)) +
-      labs(x = 'Time since start (min)', y = flow$rate[1], color = NULL, title = input$title) +
+      labs(x = 'Time since start (min)', y = paste0('Flow ', '(', input$flow_units, ')'), color = NULL, title = input$title) +
       theme(
         text = element_text(size = global_font_size),
         legend.position = 'top',
@@ -313,7 +325,7 @@ server <- function(input, output, session) {
         coord_cartesian(xlim = c(0, xmax()), ylim = c(ymin, ymax()), expand = FALSE) +
         scale_x_continuous(breaks = scales::breaks_extended(n = 20)) +
         scale_y_continuous(sec.axis = sec_axis(~ . * scale_factor, name = sample$conc[1])) +
-        labs(title = input$title, x = 'Time since start (min)', y = flow$rate[1], color = NULL) +
+        labs(title = input$title, x = 'Time since start (min)', y = paste0('Flow ', '(', input$flow_units, ')'), color = NULL) +
         theme(
           text = element_text(size = global_font_size),
           legend.position = 'bottom',
@@ -426,9 +438,10 @@ server <- function(input, output, session) {
     sample <- filtered_data()$sample
     joined <- filtered_data()$joined
 
-    vol_out <- round(sum(calculate_bottle_proportions(flow, joined)$Volume), 1)
-    paste('Total Hydrograph Volume:', vol_out, input$vol_units)
-  })
+    vol_out <- round(sum(calculate_bottle_proportions(flow, joined, flow_units()$time_unit)$Volume), 1)
+    paste('Total Hydrograph Volume:', vol_out, flow_units()$vol_unit)
+  }) |>
+    bindEvent(input$redraw_graph)
   ########
 
   ######## download handlers for graphs, tables, and data template

@@ -41,7 +41,7 @@ ui <- fluidPage(
       shinyjs::disabled(
         numericInput(
           "composite_vol",
-          "Composite Vol. (mL)",
+          HTML("<br>Composite Vol. (mL)"),
           value = 1000,
           min = 500,
           max = 10000,
@@ -62,10 +62,11 @@ ui <- fluidPage(
     ),
     column(
       2,
-      textInput(
-        "vol_units",
-        "Water Volume Units",
-        "L",
+      selectInput(
+        "flow_units",
+        "Flow Units of Submitted Data",
+        c(`L/s` = "L/s", `gal/min (gpm)` = "gal/min", `ft³/s (cfs)` = "ft³/s"),
+        selected = "L/s",
         width = "200px"
       ),
       shinyjs::disabled(
@@ -139,7 +140,7 @@ ui <- fluidPage(
             The 'Composite Vol.' input is used in the aliquot volume calculation such that the sum of the aliquot volumes will be equal to the composite volume value entered here, measured in mL.
           </li>
           <li>
-            The 'Water Volume Units' input is used to accurately label the calculated 'Total Hydrograph Volume' output.
+            The 'Flow Units of Submitted Data' input is used to label and calculate the 'Total Hydrograph Volume' output.
           </li>
         </ol>
            "),
@@ -171,7 +172,7 @@ ui <- fluidPage(
               </li>
             </ul>
             <li>
-              Col 2: flow rate measurements. <strong> Units must be volume/second. </strong>
+              Col 2: flow rate measurements.
             </li>
           </ul>
           <li>
@@ -198,9 +199,6 @@ ui <- fluidPage(
           </ul>
           <li>
             The column headers are required and can be renamed as needed, but cannot be exclusively numeric characters [0-9].
-          </li>
-          <li>
-            The flow rate and pollutant column headers will be used for axis titles and can contain the units of the measurements.
           </li>
           <li>
             All flow rate and pollutant measurements must be greater than zero.

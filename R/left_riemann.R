@@ -1,4 +1,4 @@
-left_riemann <- function(sample_bin_breaks, flow) {
+left_riemann <- function(sample_bin_breaks, flow, time_unit) {
   V <- numeric(length(sample_bin_breaks)-1)
 
   for (i in 1:length(V)) {
@@ -8,10 +8,16 @@ left_riemann <- function(sample_bin_breaks, flow) {
       filter(mins %in% x_bounds[1]:x_bounds[2]) |>
       pull(flow_values)
 
-    second_slices <- flow |>
-      filter(mins %in% x_bounds[1]:x_bounds[2]) |>
-      mutate(seconds = mins*60) |>
-      pull(seconds)
+    if (time_unit == "s") {
+      time_slices <- flow |>
+        filter(mins %in% x_bounds[1]:x_bounds[2]) |>
+        mutate(seconds = mins*60) |>
+        pull(seconds)
+    } else {
+      time_slices <- flow |>
+        filter(mins %in% x_bounds[1]:x_bounds[2]) |>
+        pull(mins)
+    }
 
     slices <- length(flow_slices)
 
@@ -20,7 +26,7 @@ left_riemann <- function(sample_bin_breaks, flow) {
 
 
     for (j in 1:(slices-1)) {
-      vol <- vol + flow_slices[j]*(second_slices[j + 1] - second_slices[j])
+      vol <- vol + flow_slices[j]*(time_slices[j + 1] - time_slices[j])
     }
     V[i] <- vol
   }

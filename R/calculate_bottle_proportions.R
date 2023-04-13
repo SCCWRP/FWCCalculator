@@ -1,4 +1,4 @@
-calculate_bottle_proportions <- function(flow, joined, composite_vol = 1000, method = 'trapezoid') {
+calculate_bottle_proportions <- function(flow, joined, time_unit, composite_vol = 1000, method = 'trapezoid') {
   flow_row_num <- dim(flow)[1]
   joined_row_num <- dim(joined)[1]
 
@@ -12,13 +12,13 @@ calculate_bottle_proportions <- function(flow, joined, composite_vol = 1000, met
 
 
   if (method == 'left_riemann') {
-    V <- left_riemann(sample_bin_breaks, flow)
+    V <- left_riemann(sample_bin_breaks, flow, time_unit)
   }
   else if (method == 'right_riemann') {
-    V <- right_riemann(sample_bin_breaks, flow)
+    V <- right_riemann(sample_bin_breaks, flow, time_unit)
   }
   else {
-    V <- trapezoid(sample_bin_breaks, flow)
+    V <- trapezoid(sample_bin_breaks, flow, time_unit)
   }
 
 
