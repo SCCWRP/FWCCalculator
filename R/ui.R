@@ -172,7 +172,7 @@ ui <- fluidPage(
               </li>
             </ul>
             <li>
-              Col 2: flow rate measurements.
+              Col 2: flow rate measurements. <strong>Flow rates must be entered as L/s, gpm, or cfs.</strong>
             </li>
           </ul>
           <li>
