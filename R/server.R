@@ -188,6 +188,7 @@ server <- function(input, output, session) {
     if (is.null(tabs_list[['Flow-Weighting']]) & file_validator$is_valid()) {
       insertTab(
         "full_page",
+        target = "Methods",
         tab = tabPanel(
           "Flow-Weighting",
           fluidRow(
@@ -224,6 +225,7 @@ server <- function(input, output, session) {
     if (is.null(tabs_list[['Event Mean Concentration']]) & has_conc() & file_validator$is_valid()) {
       insertTab(
         "full_page",
+        target = "Flow-Weighting",
         tab = tabPanel(
           title = "Event Mean Concentration",
           fluidRow(

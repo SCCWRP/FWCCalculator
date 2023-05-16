@@ -100,7 +100,13 @@ ui <- fluidPage(
   ),
   fluidRow(
     column(
-      4
+      4,
+      HTML(
+        '
+          GitHub repository: <a href="https://github.com/SCCWRP/FWCCalculator">https://github.com/SCCWRP/FWCCalculator</a><br>
+          Feedback form: Placeholder Text
+        '
+      )
     ),
     column(
       4,
@@ -113,8 +119,7 @@ ui <- fluidPage(
       )
     ),
     column(
-      4,
-      div()
+      4
     )
   ),
   tabsetPanel(
@@ -214,6 +219,16 @@ ui <- fluidPage(
         commonmark::markdown_html() |>
         HTML() |>
         withMathJax()
+    ),
+    tabPanel(
+      "Contact Us",
+      br(),
+      HTML(
+        '
+        If you have any questions, please contact us at
+          <a href="mailto:stormwater@sccwrp.org?subject=Flow-Weighting and Compositing Calculator Question">stormwater@sccwrp.org</a>.
+        '
+      )
     ),
     id = "full_page"
   )
