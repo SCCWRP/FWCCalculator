@@ -103,8 +103,8 @@ ui <- fluidPage(
       4,
       HTML(
         '
-          GitHub repository: <a href="https://github.com/SCCWRP/FWCCalculator">https://github.com/SCCWRP/FWCCalculator</a><br>
-          Feedback form: Placeholder Text
+          <a href="https://github.com/SCCWRP/FWCCalculator">GitHub repository</a><br>
+          <a href="https://forms.office.com/pages/responsepage.aspx?id=PfKopOEaHEuZAuqhUwKBkNb1vpfauiZNit2g-l_MjnRUNVJWVFlFRzdLOVVPODlYMllLNjE3RU44Vy4u&web=1&wdLOR=cBEFC20B7-3BF7-4F6B-ADE9-65CD584DA1A3">Feedback form</a>
         '
       )
     ),
