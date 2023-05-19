@@ -8,7 +8,10 @@ ui <- fluidPage(
                               #volume1 {font-weight: bold}
                               #volume2 {font-weight: bold}
                               #start_time {color: Gray}
-                              #end_time {color: Gray}'))),
+                              #end_time {color: Gray}')),
+            tags$style(
+              ".wrap-button-text .btn { white-space: normal; }"
+            )),
 
   tags$div(HTML("<script type='text/x-mathjax-config' >
             MathJax.Hub.Config({
@@ -95,18 +98,27 @@ ui <- fluidPage(
     ),
     column(
       2,
+      shinyWidgets::actionBttn(
+        "feedback",
+        "Feedback Form",
+        width = '250px',
+        onclick ="window.open('https://forms.office.com/pages/responsepage.aspx?id=PfKopOEaHEuZAuqhUwKBkNb1vpfauiZNit2g-l_MjnRUNVJWVFlFRzdLOVVPODlYMllLNjE3RU44Vy4u&web=1&wdLOR=cBEFC20B7-3BF7-4F6B-ADE9-65CD584DA1A3', '_blank')"
+      ),
+      shinyWidgets::actionBttn(
+        "apidoc",
+        "Access the code & documentation \n on GitHub",
+        width = '250px',
+        onclick ="window.open('https://github.com/SCCWRP/FWCCalculator', '_blank')"
+      ),
+    ),
+    column(
+      2,
       div()
     )
   ),
   fluidRow(
     column(
-      4,
-      HTML(
-        '
-          <a href="https://github.com/SCCWRP/FWCCalculator">GitHub repository</a><br>
-          <a href="https://forms.office.com/pages/responsepage.aspx?id=PfKopOEaHEuZAuqhUwKBkNb1vpfauiZNit2g-l_MjnRUNVJWVFlFRzdLOVVPODlYMllLNjE3RU44Vy4u&web=1&wdLOR=cBEFC20B7-3BF7-4F6B-ADE9-65CD584DA1A3">Feedback form</a>
-        '
-      )
+      4
     ),
     column(
       4,
