@@ -452,9 +452,9 @@ server <- function(input, output, session) {
   # this happens with the datatemplate if user tries to download the template
   # until about 30 seconds after loading
   output$download_template <- downloadHandler(
-    filename = "Flow-Weighting_Template.xlsx",
+    filename = "Flow-Weighting_Template.zip",
     content = function(file) {
-      template_path <- "inst/extdata/DataTemplate.xlsx"
+      template_path <- "inst/extdata/DataTemplate.zip"
       file.copy(template_path, file, overwrite = TRUE)
     }
   )

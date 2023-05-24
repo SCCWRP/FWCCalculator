@@ -4,12 +4,17 @@
 \name{FWCCalculator-package}
 \alias{FWCCalculator}
 \alias{FWCCalculator-package}
-\title{FWCCalculator: What the Package Does (One Line, Title Case)}
+\title{FWCCalculator: Calculate Flow Weights and Event Mean Concentrations from Water Quality Data}
 \description{
-What the package does (one paragraph).
+A Shiny app for calculating the flow-weighting and event mean concentration of water quality data with discrete samples.
 }
 \author{
-\strong{Maintainer}: First Last \email{first.last@example.com} (\href{https://orcid.org/YOUR-ORCID-ID}{ORCID})
+\strong{Maintainer}: Nicholas Lombardo \email{nicholasl@sccwrp.org}
+
+Other contributors:
+\itemize{
+  \item Edward Tiernan \email{edwardt@sccwrp.org} [contributor]
+}
 
 }
 \keyword{internal}
