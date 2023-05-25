@@ -28,26 +28,26 @@ server <- function(input, output, session) {
 
   file_validator$add_rule("file", function(file) is_correct_filetype(file))
 
-  file_validator$add_rule("file", function(file) has_two_sheets(file))
+  file_validator$add_rule("file", function(file) has_three_sheets(file))
 
   file_validator$add_rule("file", function(file) has_two_columns(file))
 
-  file_validator$add_rule("file", function(file, sheet) has_headers(file, sheet), sheet = 1)
   file_validator$add_rule("file", function(file, sheet) has_headers(file, sheet), sheet = 2)
+  file_validator$add_rule("file", function(file, sheet) has_headers(file, sheet), sheet = 3)
 
-  file_validator$add_rule("file", function(file, sheet) has_correct_date_format(file, sheet), sheet = 1)
   file_validator$add_rule("file", function(file, sheet) has_correct_date_format(file, sheet), sheet = 2)
+  file_validator$add_rule("file", function(file, sheet) has_correct_date_format(file, sheet), sheet = 3)
 
   file_validator$add_rule("file", function(file) has_sample_times_in_range(file))
 
-  file_validator$add_rule("file", function(file, sheet) has_correct_measurement_format(file, sheet), sheet = 1)
   file_validator$add_rule("file", function(file, sheet) has_correct_measurement_format(file, sheet), sheet = 2)
+  file_validator$add_rule("file", function(file, sheet) has_correct_measurement_format(file, sheet), sheet = 3)
 
-  file_validator$add_rule("file", function(file, sheet) has_no_missing_values(file, sheet), sheet = 1)
   file_validator$add_rule("file", function(file, sheet) has_no_missing_values(file, sheet), sheet = 2)
+  file_validator$add_rule("file", function(file, sheet) has_no_missing_values(file, sheet), sheet = 3)
 
-  file_validator$add_rule("file", function(file, sheet) has_no_negative_values(file, sheet), sheet = 1)
   file_validator$add_rule("file", function(file, sheet) has_no_negative_values(file, sheet), sheet = 2)
+  file_validator$add_rule("file", function(file, sheet) has_no_negative_values(file, sheet), sheet = 3)
 
   observe({
     file_validator$enable()
@@ -66,8 +66,8 @@ server <- function(input, output, session) {
   ######## Initial data input from excel file, set some global values related to data()
   data <- reactive({
     print("Start data clean")
-    flow <- readxl::read_excel(input$file$datapath, sheet = 1)
-    sample <- readxl::read_excel(input$file$datapath, sheet = 2)
+    flow <- readxl::read_excel(input$file$datapath, sheet = 2)
+    sample <- readxl::read_excel(input$file$datapath, sheet = 3)
 
     data_out <- clean_data(flow, sample)
 
@@ -452,9 +452,9 @@ server <- function(input, output, session) {
   # this happens with the datatemplate if user tries to download the template
   # until about 30 seconds after loading
   output$download_template <- downloadHandler(
-    filename = "Flow-Weighting_Template.zip",
+    filename = "Flow-Weighting_Template.xlsx",
     content = function(file) {
-      template_path <- "inst/extdata/DataTemplate.zip"
+      template_path <- "inst/extdata/DataTemplate.xlsx"
       file.copy(template_path, file, overwrite = TRUE)
     }
   )

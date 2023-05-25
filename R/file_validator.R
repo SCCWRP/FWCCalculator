@@ -7,8 +7,8 @@ is_correct_filetype <- function(file) {
   }
 }
 
-has_two_sheets <- function(file) {
-  if (length(readxl::excel_sheets(file$datapath)) == 2) {
+has_three_sheets <- function(file) {
+  if (length(readxl::excel_sheets(file$datapath)) == 3) {
     return(NULL)
   }
   else {
@@ -17,7 +17,7 @@ has_two_sheets <- function(file) {
 }
 
 has_two_columns <- function(file) {
-  flow <- readxl::read_excel(file$datapath, sheet = 1)
+  flow <- readxl::read_excel(file$datapath, sheet = 2)
 
   if (dim(flow)[2] == 2) {
     return(NULL)
@@ -90,8 +90,8 @@ has_headers <- function(file, sheet) {
 }
 
 has_sample_times_in_range <- function(file) {
-  flow <- readxl::read_excel(file$datapath, sheet = 1)
-  sample <- readxl::read_excel(file$datapath, sheet = 2)
+  flow <- readxl::read_excel(file$datapath, sheet = 2)
+  sample <- readxl::read_excel(file$datapath, sheet = 3)
 
   start_time_flow <- flow[, 1] |>
     utils::head(1) |>
