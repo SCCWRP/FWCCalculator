@@ -23,8 +23,8 @@ ui <- fluidPage(
   titlePanel("Flow-Weighting and Compositing Calculator"),
   fluidRow(
     column(
-      2,
-      div()
+      4,
+      "This web application has been developed to enable consistent, transparent, easily applied calculations for post-storm flow-weighting and compositing and/or to generate an Event Mean Concentration (EMC) from a pollutograph. The web app provides flow-weighted compositing instructions based on a user-uploaded hydrograph and times of sample collection, or returns an EMC based on a user-uploaded hydrograph and pollutograph. Total hydrograph volume is also returned so that users may determine a mass load from the EMC."
     ),
     column(
       2,
@@ -36,21 +36,25 @@ ui <- fluidPage(
         accept = ".xlsx"
       ),
       shinyjs::disabled(
-        actionButton("submit", "Submit")
-      )
-    ),
-    column(
-      2,
-      shinyjs::disabled(
         numericInput(
           "composite_vol",
-          HTML("<br>Composite Vol. (mL)"),
+          "Composite Vol. (mL)",
           value = 1000,
           min = 500,
           max = 10000,
           width = "200px"
         )
       ),
+      selectInput(
+        "flow_units",
+        "Flow Units of Submitted Data",
+        c(`L/s` = "L/s", `gal/min (gpm)` = "gal/min", `ft³/s (cfs)` = "ft³/s"),
+        selected = "L/s",
+        width = "200px"
+      )
+    ),
+    column(
+      2,
       shinyjs::disabled(
         numericInput(
           "lower_mins",
@@ -61,17 +65,7 @@ ui <- fluidPage(
           width = "200px"
         )
       ),
-      textOutput("start_time")
-    ),
-    column(
-      2,
-      selectInput(
-        "flow_units",
-        "Flow Units of Submitted Data",
-        c(`L/s` = "L/s", `gal/min (gpm)` = "gal/min", `ft³/s (cfs)` = "ft³/s"),
-        selected = "L/s",
-        width = "200px"
-      ),
+      textOutput("start_time"),
       shinyjs::disabled(
         numericInput(
           "upper_mins",
@@ -82,7 +76,11 @@ ui <- fluidPage(
           width = "200px"
         )
       ),
-      textOutput("end_time")
+      textOutput("end_time"),
+      br(),
+      shinyjs::disabled(
+        actionButton("submit", "Submit")
+      )
     ),
     column(
       2,
@@ -127,7 +125,7 @@ ui <- fluidPage(
         label = "Graph Title",
         placeholder = "Enter an optional title for the graph(s)",
         value = "",
-        width = "455px"
+        width = "500px"
       )
     ),
     column(
