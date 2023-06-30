@@ -210,7 +210,7 @@ server <- function(input, output, session) {
               br(),
               downloadLink("download_hydrograph", label = "Download Hydrograph"),
               br(),
-              plotOutput("hydrograph", height = 500)
+              plotOutput("hydrograph")
             )
           )
         ),
@@ -238,12 +238,25 @@ server <- function(input, output, session) {
               DT::dataTableOutput("conc_table", width = "100%")
             ),
             column(
-              8,
+              3,
+              alignt = "center",
+              br(),
+              br(),
+              br(),
+              br(),
+              br(),
+              div(tableOutput("EMC_table"), style = "overflow-y:scroll", height = "600px")
+            ),
+            column(
+              5,
               align = "center",
-              tableOutput("EMC_table"),
+              br(),
+              br(),
               downloadLink("download_pollutograph", label = "Download Pollutograph(s)"),
               br(),
-              plotOutput("EMCgraph", height = 500)
+              br(),
+              br(),
+              div(plotOutput("EMCgraph", width = "98%"), style = "overflow-y:scroll", height = "600px")
             )
           )
         )
@@ -291,7 +304,7 @@ server <- function(input, output, session) {
         legend.justification = c("center", "top"),
         legend.background = element_blank(),
         legend.key = element_blank(),
-        axis.text.x = element_text(angle = 30, vjust = 0.5)
+        axis.text.x = element_text(angle = 40, vjust = 0.5)
       ) +
       scale_color_manual(values = c("#f8766d", "#357bb7")) +
       guides(
@@ -327,13 +340,19 @@ server <- function(input, output, session) {
         coord_cartesian(xlim = c(0, xmax()), ylim = c(ymin, ymax()), expand = FALSE) +
         scale_x_continuous(breaks = scales::breaks_extended(n = 20)) +
         scale_y_continuous(sec.axis = sec_axis(~ . * scale_factor, name = sample$conc[1])) +
-        labs(title = input$title, x = 'Time since start (min)', y = paste0('Flow ', '(', input$flow_units, ')'), color = NULL) +
+        labs(
+          #title = glue::glue("{input$title} \n EMC: {EMC()[EMC()$Pollutant == sample$conc[1], 'Event Mean Concentration']}"),
+          title = input$title,
+          x = 'Time since start (min)',
+          y = glue::glue('Flow ({input$flow_units})'),
+          color = NULL
+        ) +
         theme(
           text = element_text(size = global_font_size),
           legend.position = 'bottom',
           legend.justification = c("center", "top"),
           legend.key = element_blank(),
-          axis.text.x = element_text(angle = 30, vjust = 0.5)
+          axis.text.x = element_text(angle = 40, vjust = 0.5)
         ) +
         scale_color_manual(values = c("#f8766d", "#357bb7")) +
         guides(
@@ -355,13 +374,11 @@ server <- function(input, output, session) {
                                        ymin = ymin, ymax = ymax(), alpha = 0.2) +
                               annotate("rect", xmin = input$upper_mins, xmax = xmax(),
                                        ymin = ymin, ymax = ymax(), alpha = 0.2))
-
-    # if pollutographs fail to generate properly (in between numeric inputs for filtering for example)
-    # then print an empty plot rather than error message
-    tryCatch(cowplot::plot_grid(plotlist=plot_list_out, ncol = ifelse(length(plot_list_out) == 1, 1, 2)),
+    tryCatch(cowplot::plot_grid(plotlist=plot_list_out, ncol = 1),
              error = function(cond) ggplot())
 
-  }, height = function() (ceiling((dim(data()$sample)[2] - 2)/2))*500) |>
+
+  }, height = function() (length(unique((data()$sample$conc))))*450) |>
     bindEvent(input$redraw_graph)
 
   ########
@@ -392,7 +409,7 @@ server <- function(input, output, session) {
   # render proportions table to page
   output$proportions <- DT::renderDataTable({
     proportions()
-  }, options = list(searching = FALSE, columnDefs = list(list(width = '155px', targets = 1))), selection = 'none') |>
+  }, options = list(searching = FALSE, lengthChange = FALSE, columnDefs = list(list(width = '155px', targets = 1))), selection = 'none') |>
     bindEvent(input$redraw_graph)
 
   # generate filtered concentration/pollutant  sample table
@@ -411,7 +428,17 @@ server <- function(input, output, session) {
   # generate as datatable with searching and row selection options removed
   output$conc_table <- DT::renderDataTable({
     concentrations()
-  }, options = list(searching = FALSE, autoWidth = TRUE, columnDefs = list(list(width = '155px', targets = 1))), selection = 'none') |>
+  },
+  extensions = "FixedColumns",
+  options = list(
+    fixedColumns = list(leftColumns = 3),
+    scrollX = TRUE,
+    lengthChange = FALSE,
+    searching = FALSE,
+    autoWidth = TRUE,
+    columnDefs = list(list(width = '155px', targets = 1))
+  ),
+  selection = 'none') |>
     bindEvent(input$redraw_graph)
 
   # table to show EMC values, one per pollutant
@@ -428,7 +455,7 @@ server <- function(input, output, session) {
   # render table to page
   output$EMC_table <- renderTable({
     EMC()
-  }, align = "l", striped = TRUE, display = c("d", "s", "fg")) |>
+  }, striped = TRUE, display = c("d", "s", "fg")) |>
     bindEvent(input$redraw_graph)
 
   ########
