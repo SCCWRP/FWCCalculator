@@ -34,7 +34,8 @@ has_no_missing_values <- function(file, sheet) {
     return(NULL)
   }
   else {
-    return(paste0("Missing values present on sheet ", sheet, " on row(s) ", paste(sort(unique(which(is.na(data)) %% dim(data)[1] + 1)), collapse = ", "), "."))
+    problem_sheet <- readxl::excel_sheets(file$datapath)[sheet]
+    return(paste0("Missing values present on sheet ", problem_sheet, " on row(s) ", paste(sort(unique(which(is.na(data)) %% dim(data)[1] + 1)), collapse = ", "), "."))
   }
 }
 
@@ -45,7 +46,8 @@ has_no_negative_values <- function(file, sheet) {
     return(NULL)
   }
   else {
-    return(paste0("Negative values present on sheet ", sheet, " on row(s) ", paste(sort(unique(which(data < 0) %% dim(data)[1] + 1)), collapse = ", "), "."))
+    problem_sheet <- readxl::excel_sheets(file$datapath)[sheet]
+    return(paste0("Negative values present on sheet ", problem_sheet, " on row(s) ", paste(sort(unique(which(data < 0) %% dim(data)[1] + 1)), collapse = ", "), "."))
   }
 }
 
@@ -56,7 +58,8 @@ has_correct_date_format <- function(file, sheet) {
     return(NULL)
   }
   else {
-    return(paste0("Incorrect date format on sheet ", sheet, ". Please use the template provided in the Instructions tab."))
+    problem_sheet <- readxl::excel_sheets(file$datapath)[sheet]
+    return(paste0("Incorrect date format on sheet ", problem_sheet, ". Please use the template provided in the Instructions tab."))
   }
 }
 
@@ -71,7 +74,8 @@ has_correct_measurement_format <- function(file, sheet) {
     return(NULL)
   }
   else {
-    return(paste0("Incorrect data type on sheet ", sheet, ". Make sure all measurements have a numeric format."))
+    problem_sheet <- readxl::excel_sheets(file$datapath)[sheet]
+    return(paste0("Incorrect data type on sheet ", problem_sheet, ". Make sure all measurements have a numeric format."))
   }
 
 }
@@ -85,7 +89,8 @@ has_headers <- function(file, sheet) {
     return(NULL)
   }
   else {
-    return(paste0("Missing or incorrectly-formatted header(s) on sheet ", sheet, ". Please add informative headers to the data."))
+    problem_sheet <- readxl::excel_sheets(file$datapath)[sheet]
+    return(paste0("Missing or incorrectly-formatted header(s) on sheet ", problem_sheet, ". Please add informative headers to the data."))
   }
 }
 
