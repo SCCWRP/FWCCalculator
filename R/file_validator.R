@@ -90,7 +90,7 @@ has_headers <- function(file, sheet) {
   }
   else {
     problem_sheet <- readxl::excel_sheets(file$datapath)[sheet]
-    return(paste0("Missing or incorrectly-formatted header(s) on sheet ", problem_sheet, ". Please add informative headers to the data."))
+    return(paste0("Missing or incorrectly-formatted header(s) on sheet ", problem_sheet, ". The column headers are required and can be renamed as needed, but cannot be exclusively numeric characters [0-9]."))
   }
 }
 
