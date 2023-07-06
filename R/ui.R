@@ -3,6 +3,14 @@ markdown_text <- httr::GET("https://raw.githubusercontent.com/SCCWRP/FWCCalculat
 
 ui <- fluidPage(
   shinyjs::useShinyjs(),
+  # HTML('<input type="text" id="client_time_zone_offset" name="client_time_zone_offset" style="display: none;"> '),
+  #
+  # tags$script('
+  #   $(function() {
+  #     var time_now = new Date()
+  #     $("input#client_time_zone_offset").val(time_now.getTimezoneOffset())
+  #   });
+  # '),
   tags$head(tags$style(paste0('body {font-size: ', global_font_size, 'px}
                               .action-button {font-size: ', global_font_size, 'px}
                               #volume1 {font-weight: bold}
@@ -54,32 +62,45 @@ ui <- fluidPage(
       )
     ),
     column(
-      2,
+      1,
       shinyjs::disabled(
-        numericInput(
-          "lower_mins",
-          "Start Time (min)",
-          min = 0,
-          value = 0,
-          step = 5,
-          width = "200px"
+        dateInput(
+          "start_date",
+          label = "Start Date",
+          value = Sys.Date(),
+          autoclose = TRUE
         )
       ),
-      textOutput("start_time"),
       shinyjs::disabled(
-        numericInput(
-          "upper_mins",
-          "End Time (min)",
-          min = 0,
-          step = 5,
-          value = 10000,
-          width = "200px"
+        dateInput(
+          "end_date",
+          label = "End Date",
+          value = Sys.Date(),
+          autoclose = TRUE
         )
       ),
-      textOutput("end_time"),
       br(),
       shinyjs::disabled(
         actionButton("submit", "Submit")
+      )
+    ),
+    column(
+      1,
+      shinyjs::disabled(
+        shinyTime::timeInput(
+          "start_time",
+          label = "Start Time",
+          value = lubridate::hm("12:00"),
+          seconds = FALSE
+        )
+      ),
+      shinyjs::disabled(
+        shinyTime::timeInput(
+          "end_time",
+          label = "End Time",
+          value = lubridate::hm("12:00"),
+          seconds = FALSE
+        )
       )
     ),
     column(
@@ -146,10 +167,10 @@ ui <- fluidPage(
             Upload your data by clicking the 'Browse' button, selecting the updated Excel spreadsheet, and clicking the 'Submit' button. The calculator will generate the aliquot volume table as well as the hydrograph and pollutograph(s), depending on the uploaded data. If pollutant data is provided, the calculator will also provide the Event Mean Concentration for each of the specified pollutants.
           </li>
           <li>
-            Use the 'Start Time' and 'End Time' inputs to filter the data to the appropriate time range. Elapsed time in minutes is presented. The grayed-out sections of the graph will <i>not</i> be included in the aliquot volume and event mean concentration calculations.
+            Use the 'Start Date/Time' and 'End Date/Time' inputs to filter the data to the appropriate time range. The grayed-out sections of the graph will <i>not</i> be included in the aliquot volume and event mean concentration calculations.
           </li>
           <li>
-            After changing the 'Start Time' and 'End Time', click the 'Redraw Graph(s)' button to regenerate the aliquot volume table, hydrograph, and pollutograph(s), filtered to the provided times.
+            After changing the 'Start Date/Time' and 'End Date/Time' inputs, click the 'Redraw Graph(s)' button to regenerate the aliquot volume table, hydrograph, and pollutograph(s), filtered to the provided times.
           </li>
           <li>
             The 'Composite Vol.' input is used in the aliquot volume calculation such that the sum of the aliquot volumes will be equal to the composite volume value entered here, measured in mL.

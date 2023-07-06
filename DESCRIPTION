@@ -30,7 +30,11 @@ Imports:
     tibble,
     tidyr,
     utils,
-    shinyWidgets
+    shinyWidgets,
+    shinycssloaders,
+    glue,
+    openxlsx,
+    shinyTime
 Depends: 
     R (>= 2.10)
 LazyData: true

@@ -1,5 +1,4 @@
 server <- function(input, output, session) {
-  print("server start")
 
   ######## Reset button logic
   observe({
@@ -54,36 +53,111 @@ server <- function(input, output, session) {
 
     shinyjs::toggleState("submit", file_validator$is_valid())
     shinyjs::toggleState("composite_vol", file_validator$is_valid())
-    shinyjs::toggleState("lower_mins", file_validator$is_valid())
     shinyjs::toggleState("flow_units", file_validator$is_valid())
-    shinyjs::toggleState("upper_mins", file_validator$is_valid())
     shinyjs::toggleState("redraw_graph", file_validator$is_valid())
+    shinyjs::toggleState("start_date", file_validator$is_valid())
+    shinyjs::toggleState("end_date", file_validator$is_valid())
+    shinyjs::toggleState("start_time", file_validator$is_valid())
+    shinyjs::toggleState("end_time", file_validator$is_valid())
   }) |>
     bindEvent(req(input$file))
 
   ########
 
+
+
   ######## Initial data input from excel file, set some global values related to data()
   data <- reactive({
-    print("Start data clean")
     flow <- readxl::read_excel(input$file$datapath, sheet = 2)
     sample <- readxl::read_excel(input$file$datapath, sheet = 3)
 
     data_out <- clean_data(flow, sample)
 
-    xmin <- min(data_out$flow$mins)
-    xmax <- max(data_out$flow$mins)
-    # set the initial start and end filters so that filtering functionality is visible/apparent
-    # updateNumericInput(inputId = "lower_mins", value = round(xmin + 0.5*stats::sd(data_out$flow$mins), -1))
-    # updateNumericInput(inputId = "upper_mins", value = round(xmax - 0.5*stats::sd(data_out$flow$mins), -1))
-    # keep at 0 instead
-    updateNumericInput(inputId = "lower_mins", value = 0)
-    updateNumericInput(inputId = "upper_mins", value = xmax)
+    datetime_min <- lubridate::force_tz(min(data_out$flow$times), global_time_zone)
+    datetime_max <- lubridate::force_tz(max(data_out$flow$times), global_time_zone)
+
+    updateDateInput(
+      session = session,
+      inputId = "start_date",
+      value = lubridate::date(datetime_min),
+      min = lubridate::date(datetime_min),
+      max = lubridate::date(datetime_max)
+    )
+
+    shinyTime::updateTimeInput(
+      session = session,
+      inputId = "start_time",
+      value = datetime_min
+    )
+
+    updateDateInput(
+      session = session,
+      inputId = "end_date",
+      value = lubridate::date(datetime_max),
+      min = lubridate::date(datetime_min),
+      max = lubridate::date(datetime_max)
+    )
+
+    shinyTime::updateTimeInput(
+      session = session,
+      inputId = "end_time",
+      value = datetime_max
+    )
 
 
     data_out
   }) |>
     bindEvent(input$submit)
+
+  input_start_utc <- reactive({
+    req(input$start_date)
+    input_start_utc <- input$start_time
+    lubridate::date(input_start_utc) <- input$start_date
+
+    lubridate::force_tz(input_start_utc, global_time_zone) |>
+      as.POSIXct(tz = global_time_zone)
+
+  })
+
+  input_end_utc <- reactive({
+    req(input$end_date)
+    input_end_utc <- input$end_time
+    lubridate::date(input_end_utc) <- input$end_date
+
+    lubridate::force_tz(input_end_utc, global_time_zone) |>
+      as.POSIXct(tz = global_time_zone)
+  })
+
+
+
+  lower_mins <- reactive({
+    req(input$start_date)
+    data_start <- date_min()
+
+    start_time <- input$start_time
+
+    lubridate::date(start_time) <- input$start_date
+
+    start_time <- lubridate::force_tz(start_time, global_time_zone)
+
+    lubridate::time_length(start_time - data_start, unit = "mins")
+  }) |>
+    bindEvent(input$redraw_graph, input$submit)
+
+
+  upper_mins <- reactive({
+    req(input$end_date)
+    data_start <- date_min()
+
+    end_time <- input$end_time
+    lubridate::date(end_time) <- input$end_date
+
+    end_time <- lubridate::force_tz(end_time, global_time_zone)
+    lubridate::time_length(end_time - data_start, unit = "mins")
+
+  }) |>
+    bindEvent(input$redraw_graph, input$submit)
+
 
   # delay so that all filtered data has time to get updated correctly before drawing graphs
   observe({
@@ -103,23 +177,40 @@ server <- function(input, output, session) {
   }) |>
     bindEvent(input$submit)
 
+  date_min <- reactive({
+    lubridate::force_tz(min(data()$flow$times), global_time_zone)
+  })
+
+  date_max <- reactive({
+    lubridate::force_tz(max(data()$flow$times), global_time_zone)
+  })
+
+
   ########
 
 
   # update numeric inputs on invalid values
   observe({
-    if (input$lower_mins < xmin | is.na(input$lower_mins)) {
-      updateNumericInput(session = session, inputId = "lower_mins", value = xmin)
+    if (lower_mins() < xmin | is.na(lower_mins())) {
+      shinyTime::updateTimeInput(session = session, inputId = "start_time", value = date_min())
+      updateDateInput(session = session, inputId = "start_date", value = lubridate::date(date_min()))
     }
-    if (input$upper_mins > xmax() | is.na(input$upper_mins)) {
-      updateNumericInput(session = session, inputId = "upper_mins", value = xmax())
+    if (upper_mins() > xmax() | is.na(upper_mins())) {
+      shinyTime::updateTimeInput(session = session, inputId = "end_time", value = date_max())
+      updateDateInput(session = session, inputId = "end_date", value = lubridate::date(date_max()))
     }
-    if (input$lower_mins > xmax()) {
-      updateNumericInput(session = session, inputId = "lower_mins", value = xmax() - 30)
-      updateNumericInput(session = session, inputId = "upper_mins", value = xmax())
+    if (lower_mins() > xmax()) {
+      shinyTime::updateTimeInput(session = session, inputId = "start_time", value = date_max() - lubridate::minutes(30))
+      updateDateInput(session = session, inputId = "start_date", value = lubridate::date(date_max() - lubridate::minutes(30)))
+
+      shinyTime::updateTimeInput(session = session, inputId = "end_time", value = date_max())
+      updateDateInput(session = session, inputId = "end_date", value = lubridate::date(date_max()))
+
     }
-    if (input$lower_mins > input$upper_mins) {
-      updateNumericInput(session = session, inputId = "upper_mins", value = ifelse(input$lower_mins + 30 <= xmax(), input$lower_mins + 30, xmax()))
+    if (lower_mins() > upper_mins()) {
+      shinyTime::updateTimeInput(session = session, inputId = "end_time", value = ifelse(lower_mins() + 30 <= xmax(),  date_min() + lubridate::minutes(30), date_max()))
+      updateDateInput(session = session, inputId = "end_date", value = lubridate::date(ifelse(lower_mins() + 30 <= xmax(),  date_min() + lubridate::minutes(30), date_max())))
+
     }
   }) |>
     bindEvent(input$redraw_graph)
@@ -132,33 +223,19 @@ server <- function(input, output, session) {
     joined <- data()$joined
 
     flow_filtered <- flow |>
-      filter(between(mins, input$lower_mins, input$upper_mins))
+      filter(between(mins, lower_mins(), upper_mins()))
 
     sample_filtered <-  sample |>
-      filter(between(mins, input$lower_mins, input$upper_mins))
+      filter(between(mins, lower_mins(), upper_mins()))
 
     joined_filtered <-  joined |>
-      filter(between(mins, input$lower_mins, input$upper_mins))
+      filter(between(mins, lower_mins(), upper_mins()))
 
     proportions <- calculate_bottle_proportions(flow_filtered, joined_filtered, flow_units()$time_unit, input$composite_vol)
 
     list(flow = flow_filtered, sample = sample_filtered, joined = joined_filtered, proportions = proportions)
   }) |>
     bindEvent(data(), input$redraw_graph)
-
-
-  ######## Show actual datetimes below start and end minute inputs
-  output$start_time <- renderText({
-    format(input$lower_mins*60 + data()$flow$times[1], "%Y-%m-%d %H:%M:%S")
-  }) |>
-    bindEvent(input$lower_mins, input$submit)
-
-  output$end_time <- renderText({
-    format(input$upper_mins*60 + data()$flow$times[1], "%Y-%m-%d %H:%M:%S")
-  }) |>
-    bindEvent(input$upper_mins, input$submit)
-
-  ########
 
 
   ######## check if concentration/pollutant data is included
@@ -197,20 +274,22 @@ server <- function(input, output, session) {
               align = "center",
               br(),
               textOutput("volume1"),
-              downloadLink("download_aliquot", "Download Aliquot Volume Table"),
+              shinyjs::hidden(downloadLink("download_results", "Download Results")),
               br(),
-              DT::dataTableOutput("proportions", width = "100%")
+              shinycssloaders::withSpinner(
+                DT::dataTableOutput("proportions", width = "100%")
+              )
             ),
             column(
               8,
               align = "center",
               br(),
               br(),
+              shinyjs::hidden(downloadLink("download_hydrograph", label = "Download Hydrograph")),
               br(),
-              br(),
-              downloadLink("download_hydrograph", label = "Download Hydrograph"),
-              br(),
-              plotOutput("hydrograph")
+              shinycssloaders::withSpinner(
+                plotOutput("hydrograph", height = "500px")
+              )
             )
           )
         ),
@@ -234,8 +313,10 @@ server <- function(input, output, session) {
               align = "center",
               br(),
               textOutput("volume2"),
-              br(),
-              DT::dataTableOutput("conc_table", width = "100%")
+              shinyjs::hidden(downloadLink("download_results2", "Download Results")),
+              shinycssloaders::withSpinner(
+                DT::dataTableOutput("conc_table", width = "100%")
+              )
             ),
             column(
               3,
@@ -245,18 +326,28 @@ server <- function(input, output, session) {
               br(),
               br(),
               br(),
-              div(tableOutput("EMC_table"), style = "overflow-y:scroll", height = "600px")
+              div(
+                shinycssloaders::withSpinner(
+                  tableOutput("EMC_table")
+                ),
+                style = "overflow-y:scroll"
+              )
             ),
             column(
               5,
               align = "center",
               br(),
               br(),
-              downloadLink("download_pollutograph", label = "Download Pollutograph(s)"),
+              shinyjs::hidden(downloadLink("download_pollutograph", label = "Download Pollutograph(s)")),
               br(),
               br(),
               br(),
-              div(plotOutput("EMCgraph", width = "98%"), style = "overflow-y:scroll", height = "600px")
+              div(
+                shinycssloaders::withSpinner(
+                  plotOutput("EMCgraph", width = "98%")
+                ),
+                style = "height:475px; overflow-y:scroll"
+              )
             )
           )
         )
@@ -293,18 +384,21 @@ server <- function(input, output, session) {
     joined <- data()$joined
 
     ggplot() +
-      geom_line(data = flow, aes(x = mins, y = flow_values, color = 'Flow'), linewidth = 1.5) +
-      geom_point(data = joined, aes(x = mins, y = values, color = 'Sample Collected'), size = 3) +
-      coord_cartesian(xlim = c(xmin, xmax()), ylim = c(ymin, ymax()), expand = FALSE) +
-      scale_x_continuous(breaks = scales::breaks_extended(n = 20)) +
-      labs(x = 'Time since start (min)', y = paste0('Flow ', '(', input$flow_units, ')'), color = NULL, title = input$title) +
+      geom_line(data = flow, aes(x = times, y = flow_values, color = 'Flow'), linewidth = 1.5) +
+      geom_point(data = joined, aes(x = times, y = values, color = 'Sample Collected'), size = 3) +
+      scale_x_datetime(
+        breaks = scales::breaks_pretty(n = 20),
+        labels = scales::label_date(format = "%m-%d %H:%M"),
+        expand = expansion()
+      ) +
+      labs(x = 'Date & Time', y = paste0('Flow ', '(', input$flow_units, ')'), color = NULL, title = input$title) +
       theme(
         text = element_text(size = global_font_size),
         legend.position = 'top',
         legend.justification = c("center", "top"),
         legend.background = element_blank(),
         legend.key = element_blank(),
-        axis.text.x = element_text(angle = 40, vjust = 0.5)
+        axis.text.x = element_text(angle = 90, vjust = 0.5)
       ) +
       scale_color_manual(values = c("#f8766d", "#357bb7")) +
       guides(
@@ -316,11 +410,27 @@ server <- function(input, output, session) {
 
   # render hydrograph and add annotations/highlights
   output$hydrograph <- renderPlot({
-    hydrograph() +
-      annotate("rect", xmin = xmin, xmax = ifelse(is.na(input$lower_mins), xmin, input$lower_mins),
-               ymin = ymin, ymax = ymax(), alpha = 0.2) +
-      annotate("rect", xmin = ifelse(is.na(input$upper_mins), xmax(), input$upper_mins), xmax = xmax(),
-               ymin = ymin, ymax = ymax(), alpha = 0.2)
+
+    plot <- hydrograph() +
+      annotate(
+        "rect",
+        xmin = date_min(),
+        xmax = input_start_utc(),
+        ymin = ymin,
+        ymax = ymax(),
+        alpha = 0.2
+      ) +
+      annotate(
+        "rect",
+        xmin = input_end_utc(),
+        xmax = date_max(),
+        ymin = ymin,
+        ymax = ymax(),
+        alpha = 0.2
+      )
+    shinyjs::show("download_hydrograph")
+    plot
+
   })|>
     bindEvent(input$redraw_graph)
 
@@ -334,16 +444,14 @@ server <- function(input, output, session) {
       scale_factor <- max(sample$conc_values)/max(flow$flow_values)
 
       ggplot() +
-        geom_line(data = flow, aes(x = mins, y = flow_values, color = 'Flow'), linewidth = 1.5) +
-        geom_point(data = sample, aes(x = mins, y = conc_values/scale_factor,
+        geom_line(data = flow, aes(x = times, y = flow_values, color = 'Flow'), linewidth = 1.5) +
+        geom_point(data = sample, aes(x = times, y = conc_values/scale_factor,
                                       color = 'Sample Concentration'), shape = 17, size = 3) +
-        coord_cartesian(xlim = c(0, xmax()), ylim = c(ymin, ymax()), expand = FALSE) +
-        scale_x_continuous(breaks = scales::breaks_extended(n = 20)) +
+        scale_x_datetime(breaks = scales::breaks_pretty(n = 20), labels = scales::label_date(format = "%m-%d %H:%M"), expand = expansion()) +
         scale_y_continuous(sec.axis = sec_axis(~ . * scale_factor, name = sample$conc[1])) +
         labs(
-          #title = glue::glue("{input$title} \n EMC: {EMC()[EMC()$Pollutant == sample$conc[1], 'Event Mean Concentration']}"),
           title = input$title,
-          x = 'Time since start (min)',
+          x = 'Date & Time',
           y = glue::glue('Flow ({input$flow_units})'),
           color = NULL
         ) +
@@ -352,7 +460,7 @@ server <- function(input, output, session) {
           legend.position = 'bottom',
           legend.justification = c("center", "top"),
           legend.key = element_blank(),
-          axis.text.x = element_text(angle = 40, vjust = 0.5)
+          axis.text.x = element_text(angle = 90, vjust = 0.5)
         ) +
         scale_color_manual(values = c("#f8766d", "#357bb7")) +
         guides(
@@ -369,11 +477,13 @@ server <- function(input, output, session) {
 
   # render list of plots created with pollutograph function and add annotations/highlights
   output$EMCgraph <- renderPlot({
+
     plot_list_out <- lapply(EMCgraph(), function(p) p +
-                              annotate("rect", xmin = xmin, xmax = input$lower_mins,
+                              annotate("rect", xmin = date_min(), xmax = input_start_utc(),
                                        ymin = ymin, ymax = ymax(), alpha = 0.2) +
-                              annotate("rect", xmin = input$upper_mins, xmax = xmax(),
+                              annotate("rect", xmin = input_end_utc(), xmax = date_max(),
                                        ymin = ymin, ymax = ymax(), alpha = 0.2))
+    shinyjs::show("download_pollutograph")
     tryCatch(cowplot::plot_grid(plotlist=plot_list_out, ncol = 1),
              error = function(cond) ggplot())
 
@@ -390,25 +500,26 @@ server <- function(input, output, session) {
     prop_out <- tryCatch({
       filtered$proportions |>
         select(SampleTime, AliquotVolume) |>
-        tibble::add_column(`Minutes Since Start` = filtered$joined$mins) |>
         rename(`Sample Times` = SampleTime,
                `Aliquot Volume (mL)` = AliquotVolume) |>
         mutate(`Sample Times` = paste(`Sample Times`),
-               `Aliquot Volume (mL)` = round(`Aliquot Volume (mL)`, 1)) |>
-        relocate(`Minutes Since Start`, .after = `Sample Times`)
-    }, error = function(cond) return(tibble(`Sample Times` = NA, `Minutes Since Start` = NA, `Aliquot Volume (mL)` = NA)))
+               `Aliquot Volume (mL)` = round(`Aliquot Volume (mL)`, 1))
+    }, error = function(cond) return(tibble(`Sample Times` = NA, `Aliquot Volume (mL)` = NA)))
 
     summary_row <- prop_out |>
-      summarize(`Sample Times` = "Total", `Minutes Since Start` = NA, `Aliquot Volume (mL)` = sum(`Aliquot Volume (mL)`))
+      summarize(`Sample Times` = "Total", `Aliquot Volume (mL)` = sum(`Aliquot Volume (mL)`))
 
     prop_out <- prop_out |>
       add_row(summary_row)
+
     prop_out
   })
 
   # render proportions table to page
   output$proportions <- DT::renderDataTable({
-    proportions()
+    props <- proportions()
+    shinyjs::show("download_results")
+    props
   }, options = list(searching = FALSE, lengthChange = FALSE, columnDefs = list(list(width = '155px', targets = 1))), selection = 'none') |>
     bindEvent(input$redraw_graph)
 
@@ -418,10 +529,9 @@ server <- function(input, output, session) {
     sample <- filtered_data()$sample
 
     sample |>
-      rename(`Sample Times` = times,
-             `Minutes Since Start` = mins) |>
+      select(-mins) |>
+      rename(`Sample Times` = times) |>
       mutate(`Sample Times` = paste(`Sample Times`)) |>
-      relocate(`Minutes Since Start`, .after = `Sample Times`) |>
       tidyr::pivot_wider(names_from = conc, values_from = conc_values)
   })
 
@@ -431,7 +541,7 @@ server <- function(input, output, session) {
   },
   extensions = "FixedColumns",
   options = list(
-    fixedColumns = list(leftColumns = 3),
+    fixedColumns = list(leftColumns = 2),
     scrollX = TRUE,
     lengthChange = FALSE,
     searching = FALSE,
@@ -454,7 +564,9 @@ server <- function(input, output, session) {
 
   # render table to page
   output$EMC_table <- renderTable({
-    EMC()
+    emc <- EMC()
+    shinyjs::show("download_results2")
+    emc
   }, striped = TRUE, display = c("d", "s", "fg")) |>
     bindEvent(input$redraw_graph)
 
@@ -492,7 +604,17 @@ server <- function(input, output, session) {
       paste0("Hydrograph-", format(Sys.time(), "%Y-%m-%d-%H%M%S"), ".png")
     },
     content = function(file) {
-      cowplot::save_plot(file, plot = hydrograph(), device = "png", base_height = 6.94, base_asp = 1.33)
+
+      hydro_plot <- hydrograph() +
+        scale_x_datetime(
+          breaks = scales::breaks_pretty(n = 20),
+          labels = scales::label_date(format = "%m-%d %H:%M"),
+          limits = c(input_start_utc(), input_end_utc()),
+          expand = expansion()
+        ) +
+        ylim(ymin, ymax())
+
+      cowplot::save_plot(file, plot = hydro_plot, device = "png", base_height = 6.94, base_asp = 1.33)
     }
   )
 
@@ -503,18 +625,68 @@ server <- function(input, output, session) {
     },
     content = function(file) {
       num_cols <- ifelse(length(EMCgraph()) == 1, 1, 2)
-      plot <- cowplot::plot_grid(plotlist=EMCgraph(), ncol = num_cols) + theme(plot.background = element_rect(fill = "white", color = NA))
+
+      emc_list <- lapply(
+        EMCgraph(), function(p) p +
+          scale_x_datetime(
+            breaks = scales::breaks_pretty(n = 20),
+            labels = scales::label_date(format = "%m-%d %H:%M"),
+            limits = c(input_start_utc(), input_end_utc()),
+            expand = expansion()
+          ) +
+          ylim(ymin, ymax())
+      )
+
+      plot <- cowplot::plot_grid(plotlist=emc_list, ncol = num_cols) + theme(plot.background = element_rect(fill = "white", color = NA))
       cowplot::save_plot(file, plot = plot, device = "png", ncol = num_cols, nrow = ceiling(length(EMCgraph())/2), base_height = 6.94, base_asp = 1.33)
     }
   )
 
-  output$download_aliquot <- downloadHandler(
+
+  output$download_results <- output$download_results2 <- downloadHandler(
     filename = function() {
-      paste0("AliquotVolume-", format(Sys.time(), "%Y-%m-%d-%H%M%S"), ".csv")
+      glue::glue("Flow-Weighting-Results-{format(Sys.time(), '%Y-%m-%d-%H%M%S')}.xlsx")
     },
     content = function(file) {
-      utils::write.csv(proportions(), file, row.names = FALSE)
+      flow <- filtered_data()$flow
+      sample <- filtered_data()$sample
+      joined <- filtered_data()$joined
+
+      vol_out <- round(sum(calculate_bottle_proportions(flow, joined, flow_units()$time_unit)$Volume), 1)
+
+      wb <- openxlsx::createWorkbook()
+      openxlsx::addWorksheet(wb, "Results")
+      openxlsx::writeData(
+        wb = wb,
+        sheet = "Results",
+        x = "Total Hydrograph Volume",
+        colNames = FALSE
+      )
+      openxlsx::writeData(
+        wb = wb,
+        sheet = "Results",
+        x = paste(vol_out, flow_units()$vol_unit),
+        startCol = 2,
+        colNames = FALSE
+      )
+      openxlsx::writeData(
+        wb = wb,
+        sheet = "Results",
+        x = proportions(),
+        startRow = 3
+      )
+
+      if(!is.null(tabs_list[['Event Mean Concentration']])) {
+        openxlsx::writeData(
+          wb = wb,
+          sheet = "Results",
+          x = EMC(),
+          startCol = 4,
+          startRow = 3
+        )
+      }
+
+      openxlsx::saveWorkbook(wb = wb, file = file, overwrite = TRUE)
     }
   )
-  ########
 }
