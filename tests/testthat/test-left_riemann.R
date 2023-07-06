@@ -8,5 +8,5 @@ excel_calcs <- c(3200490, 225540, 222660, 237960, 258300, 282960, 304650, 320310
 
 
 test_that("left riemann sum works", {
-  expect_equal(left_riemann(sample_bin_breaks, flow), excel_calcs)
+  expect_equal(left_riemann(sample_bin_breaks, flow, time_unit = "s"), excel_calcs)
 })

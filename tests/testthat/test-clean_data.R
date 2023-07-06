@@ -1,5 +1,5 @@
-flow <- readxl::read_excel("test_data/FashionValley_two_conc.xlsx", sheet = 1)
-sample <- readxl::read_excel("test_data/FashionValley_two_conc.xlsx", sheet = 2)
+flow <- readxl::read_excel("test_data/FashionValley_two_conc.xlsx", sheet = 2)
+sample <- readxl::read_excel("test_data/FashionValley_two_conc.xlsx", sheet = 3)
 
 
 test_that("flow is correct", {
