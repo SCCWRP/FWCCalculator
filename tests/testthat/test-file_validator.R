@@ -41,13 +41,13 @@ test_that("missing value check works", {
 })
 
 no_negative_values <- data.frame(datapath = "test_data/FashionValley_two_conc.xlsx")
-negative_values <- data.frame(datapath = "test_data/FashionValley_two_conc_lt_zero.xlsx")
+negative_values_both_sheets <- data.frame(datapath = "test_data/FashionValley_two_conc_lt_zero.xlsx")
+negative_values_one_sheet <- data.frame(datapath = "test_data/FashionValley_two_conc_lt_zero_one_sheet.xlsx")
 
 test_that("negative value check works", {
-  expect_null(has_no_negative_values(no_negative_values, sheet = 2))
-  expect_type(has_no_negative_values(negative_values, sheet = 2), "character")
-  expect_null(has_no_negative_values(no_negative_values, sheet = 3))
-  expect_type(has_no_negative_values(negative_values, sheet = 3), "character")
+  expect_null(has_no_negative_values(no_negative_values))
+  expect_type(has_no_negative_values(negative_values_both_sheets), "character")
+  expect_type(has_no_negative_values(negative_values_one_sheet), "character")
 })
 
 correct_date_format <- data.frame(datapath = "test_data/FashionValley_two_conc.xlsx")
