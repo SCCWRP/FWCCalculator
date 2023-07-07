@@ -28,78 +28,93 @@ ui <- fluidPage(
             </script >
             ")),
 
-  titlePanel("Flow-Weighting and Compositing Calculator"),
+  titlePanel("Flow-Weighting & Compositing Calculator"),
   fluidRow(
     column(
-      4,
+      3,
       "This web application has been developed to enable consistent, transparent, easily applied calculations for post-storm flow-weighting and compositing and/or to generate an Event Mean Concentration (EMC) from a pollutograph. The web app provides flow-weighted compositing instructions based on a user-uploaded hydrograph and times of sample collection, or returns an EMC based on a user-uploaded hydrograph and pollutograph. Total hydrograph volume is also returned so that users may determine a mass load from the EMC."
     ),
     column(
       2,
       align = "left",
-      fileInput(
-        "file",
-        "Choose Excel File",
-        multiple = FALSE,
-        accept = ".xlsx"
+      div(
+        fileInput(
+          "file",
+          "Choose Excel File",
+          multiple = FALSE,
+          accept = ".xlsx"
+        ),
+        style = 'overflow-y:auto; height: 300px'
+      )
+    ),
+    column(
+      3,
+      align = "left",
+      column(
+        4,
+        align = "left",
+        shinyjs::disabled(
+          dateInput(
+            "start_date",
+            label = "Start Date",
+            value = Sys.Date(),
+            autoclose = TRUE
+          )
+        ),
+        shinyjs::disabled(
+          dateInput(
+            "end_date",
+            label = "End Date",
+            value = Sys.Date(),
+            autoclose = TRUE
+          )
+        ),
+        shinyjs::disabled(
+          numericInput(
+            "composite_vol",
+            "Composite Vol. (mL)",
+            value = 1000,
+            min = 500,
+            max = 10000,
+            width = "200px"
+          )
+        )
       ),
-      shinyjs::disabled(
-        numericInput(
-          "composite_vol",
-          "Composite Vol. (mL)",
-          value = 1000,
-          min = 500,
-          max = 10000,
+      column(
+        8,
+        align = "left",
+        shinyjs::disabled(
+          shinyTime::timeInput(
+            "start_time",
+            label = div("Start Time", style="color:black"),
+            value = lubridate::hm("12:00"),
+            seconds = FALSE
+          )
+        ),
+        shinyjs::disabled(
+          shinyTime::timeInput(
+            "end_time",
+            label = div("End Time", style="color:black"),
+            value = lubridate::hm("12:00"),
+            seconds = FALSE
+          )
+        ),
+        selectInput(
+          "flow_units",
+          "Flow Units of Submitted Data",
+          c(`L/s` = "L/s", `gal/min (gpm)` = "gal/min", `ft³/s (cfs)` = "ft³/s"),
+          selected = "L/s",
           width = "200px"
         )
       ),
-      selectInput(
-        "flow_units",
-        "Flow Units of Submitted Data",
-        c(`L/s` = "L/s", `gal/min (gpm)` = "gal/min", `ft³/s (cfs)` = "ft³/s"),
-        selected = "L/s",
-        width = "200px"
-      )
-    ),
-    column(
-      1,
-      shinyjs::disabled(
-        dateInput(
-          "start_date",
-          label = "Start Date",
-          value = Sys.Date(),
-          autoclose = TRUE
-        )
-      ),
-      shinyjs::disabled(
-        dateInput(
-          "end_date",
-          label = "End Date",
-          value = Sys.Date(),
-          autoclose = TRUE
-        )
-      ),
-      br(),
-      shinyjs::disabled(
-        actionButton("submit", "Submit")
-      )
-    ),
-    column(
-      1,
-      shinyjs::disabled(
-        shinyTime::timeInput(
-          "start_time",
-          label = "Start Time",
-          value = lubridate::hm("12:00"),
-          seconds = FALSE
-        )
-      ),
-      shinyjs::disabled(
-        shinyTime::timeInput(
-          "end_time",
-          label = "End Time",
-          value = lubridate::hm("12:00"),
-          seconds = FALSE
+      column(
+        12,
+        textInput(
+          inputId = "title",
+          label = "Graph Title",
+          placeholder = "Enter an optional title for the graph(s)",
+          value = "",
+          width = "100%"
         )
       )
     ),
@@ -107,50 +122,35 @@ ui <- fluidPage(
       2,
       align = "left",
       br(),
-      actionButton("reset_button", "Reload Application", width = "175px"),
-      br(),
+      actionButton("reset_button", "Reload App", width = "175px"),
       br(),
       br(),
       shinyjs::disabled(
         actionButton("redraw_graph", "Redraw Graph(s)", width = "175px")
-      )
+      ),
+      br(),
+      br(),
+      shinyjs::disabled(
+        actionButton("submit", "Submit")
+      ),
     ),
     column(
       2,
+      align = "left",
+      br(),
       shinyWidgets::actionBttn(
         "feedback",
         "Feedback Form",
         width = '250px',
         onclick ="window.open('https://forms.office.com/pages/responsepage.aspx?id=PfKopOEaHEuZAuqhUwKBkNb1vpfauiZNit2g-l_MjnRUNVJWVFlFRzdLOVVPODlYMllLNjE3RU44Vy4u&web=1&wdLOR=cBEFC20B7-3BF7-4F6B-ADE9-65CD584DA1A3', '_blank')"
       ),
+      br(),
       shinyWidgets::actionBttn(
         "apidoc",
-        "Access the code & documentation \n on GitHub",
+        "Access the code & documentation on GitHub",
         width = '250px',
         onclick ="window.open('https://github.com/SCCWRP/FWCCalculator', '_blank')"
-      ),
-    ),
-    column(
-      2,
-      div()
-    )
-  ),
-  fluidRow(
-    column(
-      4
-    ),
-    column(
-      4,
-      textInput(
-        inputId = "title",
-        label = "Graph Title",
-        placeholder = "Enter an optional title for the graph(s)",
-        value = "",
-        width = "500px"
       )
-    ),
-    column(
-      4
     )
   ),
   tabsetPanel(
