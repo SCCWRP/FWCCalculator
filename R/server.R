@@ -45,20 +45,18 @@ server <- function(input, output, session) {
   file_validator$add_rule("file", function(file, sheet) has_no_missing_values(file, sheet), sheet = 2)
   file_validator$add_rule("file", function(file, sheet) has_no_missing_values(file, sheet), sheet = 3)
 
-  file_validator$add_rule("file", function(file, sheet) has_no_negative_values(file, sheet), sheet = 2)
-  file_validator$add_rule("file", function(file, sheet) has_no_negative_values(file, sheet), sheet = 3)
+  file_validator$add_rule("file", function(file) has_no_negative_values(file))
 
   observe({
     file_validator$enable()
-
-    shinyjs::toggleState("submit", file_validator$is_valid())
+    shinyjs::toggleState("start_date", file_validator$is_valid())
+    shinyjs::toggleState("start_time", file_validator$is_valid())
+    shinyjs::toggleState("end_date", file_validator$is_valid())
+    shinyjs::toggleState("end_time", file_validator$is_valid())
     shinyjs::toggleState("composite_vol", file_validator$is_valid())
     shinyjs::toggleState("flow_units", file_validator$is_valid())
     shinyjs::toggleState("redraw_graph", file_validator$is_valid())
-    shinyjs::toggleState("start_date", file_validator$is_valid())
-    shinyjs::toggleState("end_date", file_validator$is_valid())
-    shinyjs::toggleState("start_time", file_validator$is_valid())
-    shinyjs::toggleState("end_time", file_validator$is_valid())
+    shinyjs::toggleState("submit", file_validator$is_valid())
   }) |>
     bindEvent(req(input$file))
 
@@ -330,7 +328,7 @@ server <- function(input, output, session) {
                 shinycssloaders::withSpinner(
                   tableOutput("EMC_table")
                 ),
-                style = "overflow-y:scroll"
+                style = "overflow-y:auto"
               )
             ),
             column(
@@ -344,9 +342,9 @@ server <- function(input, output, session) {
               br(),
               div(
                 shinycssloaders::withSpinner(
-                  plotOutput("EMCgraph", width = "98%")
+                  plotOutput("EMCgraph", width = "95%")
                 ),
-                style = "height:475px; overflow-y:scroll"
+                style = "height:475px; overflow-y:auto"
               )
             )
           )
@@ -555,11 +553,29 @@ server <- function(input, output, session) {
   EMC <- reactive({
     props <- filtered_data()$proportions
     sample <- filtered_data()$sample
+    flow <- filtered_data()$flow
 
-    sample |>
+    num_concs <- sample |>
+      distinct(conc) |>
+      pull() |>
+      length()
+
+
+    if(nrow(flow) == (nrow(sample) / num_concs)) {
+      emc_out <- sample |>
+        group_by(conc) |>
+        slice_head(n=-1) |>
+        summarize(conc_values = signif(as.numeric(props$Proportions%*%conc_values), 3)) |>
+        rename(`Pollutant` = conc, `Event Mean Concentration` = conc_values)
+      return(emc_out)
+    }
+
+    emc_out <- sample |>
       group_by(conc) |>
-      summarize(across(.cols = !(c(mins, times)), .fns = ~ signif(as.numeric(props$Proportions%*%.x), 3))) |>
+      summarize(conc_values = signif(as.numeric(props$Proportions%*%conc_values), 3)) |>
       rename(`Pollutant` = conc, `Event Mean Concentration` = conc_values)
+
+    emc_out
   })
 
   # render table to page
@@ -624,21 +640,32 @@ server <- function(input, output, session) {
       paste0("Pollutograph-", format(Sys.time(), "%Y-%m-%d-%H%M%S"), ".png")
     },
     content = function(file) {
-      num_cols <- ifelse(length(EMCgraph()) == 1, 1, 2)
+      withProgress(
+        message = "Downloading Pollutograph(s)",
+        value = 0,
+        {
+          num_graphs <- length(EMCgraph())
+          num_cols <- ifelse(num_graphs == 1, 1, 2)
 
-      emc_list <- lapply(
-        EMCgraph(), function(p) p +
-          scale_x_datetime(
-            breaks = scales::breaks_pretty(n = 20),
-            labels = scales::label_date(format = "%m-%d %H:%M"),
-            limits = c(input_start_utc(), input_end_utc()),
-            expand = expansion()
-          ) +
-          ylim(ymin, ymax())
+          emc_list <- lapply(
+            EMCgraph(), function(p) {
+              incProgress(1/num_graphs)
+              p +
+                scale_x_datetime(
+                  breaks = scales::breaks_pretty(n = 20),
+                  labels = scales::label_date(format = "%m-%d %H:%M"),
+                  limits = c(input_start_utc(), input_end_utc()),
+                  expand = expansion()
+                ) +
+                ylim(ymin, ymax())
+            }
+          )
+
+          plot <- cowplot::plot_grid(plotlist=emc_list, ncol = num_cols) + theme(plot.background = element_rect(fill = "white", color = NA))
+          cowplot::save_plot(file, plot = plot, device = "png", ncol = num_cols, nrow = ceiling(length(EMCgraph())/2), base_height = 6.94, base_asp = 1.33)
+
+        }
       )
-
-      plot <- cowplot::plot_grid(plotlist=emc_list, ncol = num_cols) + theme(plot.background = element_rect(fill = "white", color = NA))
-      cowplot::save_plot(file, plot = plot, device = "png", ncol = num_cols, nrow = ceiling(length(EMCgraph())/2), base_height = 6.94, base_asp = 1.33)
     }
   )
 
@@ -648,45 +675,55 @@ server <- function(input, output, session) {
       glue::glue("Flow-Weighting-Results-{format(Sys.time(), '%Y-%m-%d-%H%M%S')}.xlsx")
     },
     content = function(file) {
-      flow <- filtered_data()$flow
-      sample <- filtered_data()$sample
-      joined <- filtered_data()$joined
+      withProgress(
+        message = "Downloading Results",
+        value = 0,
+        {
+          flow <- filtered_data()$flow
+          sample <- filtered_data()$sample
+          joined <- filtered_data()$joined
 
-      vol_out <- round(sum(calculate_bottle_proportions(flow, joined, flow_units()$time_unit)$Volume), 1)
+          incProgress(1/10)
+          vol_out <- round(sum(calculate_bottle_proportions(flow, joined, flow_units()$time_unit)$Volume), 1)
 
-      wb <- openxlsx::createWorkbook()
-      openxlsx::addWorksheet(wb, "Results")
-      openxlsx::writeData(
-        wb = wb,
-        sheet = "Results",
-        x = "Total Hydrograph Volume",
-        colNames = FALSE
+          incProgress(3/10)
+
+          wb <- openxlsx::createWorkbook()
+          openxlsx::addWorksheet(wb, "Results")
+          openxlsx::writeData(
+            wb = wb,
+            sheet = "Results",
+            x = "Total Hydrograph Volume",
+            colNames = FALSE
+          )
+          openxlsx::writeData(
+            wb = wb,
+            sheet = "Results",
+            x = paste(vol_out, flow_units()$vol_unit),
+            startCol = 2,
+            colNames = FALSE
+          )
+          openxlsx::writeData(
+            wb = wb,
+            sheet = "Results",
+            x = proportions(),
+            startRow = 3
+          )
+          incProgress(5/10)
+
+          if(!is.null(tabs_list[['Event Mean Concentration']])) {
+            openxlsx::writeData(
+              wb = wb,
+              sheet = "Results",
+              x = EMC(),
+              startCol = 4,
+              startRow = 3
+            )
+          }
+          incProgress(1/10)
+          openxlsx::saveWorkbook(wb = wb, file = file, overwrite = TRUE)
+        }
       )
-      openxlsx::writeData(
-        wb = wb,
-        sheet = "Results",
-        x = paste(vol_out, flow_units()$vol_unit),
-        startCol = 2,
-        colNames = FALSE
-      )
-      openxlsx::writeData(
-        wb = wb,
-        sheet = "Results",
-        x = proportions(),
-        startRow = 3
-      )
-
-      if(!is.null(tabs_list[['Event Mean Concentration']])) {
-        openxlsx::writeData(
-          wb = wb,
-          sheet = "Results",
-          x = EMC(),
-          startCol = 4,
-          startRow = 3
-        )
-      }
-
-      openxlsx::saveWorkbook(wb = wb, file = file, overwrite = TRUE)
     }
   )
 }
