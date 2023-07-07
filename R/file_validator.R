@@ -35,19 +35,35 @@ has_no_missing_values <- function(file, sheet) {
   }
   else {
     problem_sheet <- readxl::excel_sheets(file$datapath)[sheet]
-    return(paste0("Missing values present on sheet ", problem_sheet, " on row(s) ", paste(sort(unique(which(is.na(data)) %% dim(data)[1] + 1)), collapse = ", "), "."))
+    return(paste0("Missing value(s) present on sheet ", problem_sheet, " on row(s) ", paste(sort(unique(which(is.na(data)) %% dim(data)[1] + 1)), collapse = ", "), "."))
   }
 }
 
-has_no_negative_values <- function(file, sheet) {
-  data <- readxl::read_excel(file$datapath, sheet = sheet)
+has_no_negative_values <- function(file) {
+  #browser()
+  sheets <- readxl::excel_sheets(file$datapath)[2:3]
 
-  if (!any(data < 0)) {
+  problem_sheets <- lapply(
+    sheets,
+    function(sheet) {
+      data <- readxl::read_excel(file$datapath, sheet = sheet)
+      if(any(data < 0)) {
+        sort(unique(which(data < 0) %% dim(data)[1] + 1))
+      }
+    }
+  )
+
+  names(problem_sheets) <- sheets
+
+  problem_sheets <- problem_sheets[!(sapply(problem_sheets, is.null))]
+
+  if (all(sapply(problem_sheets, is.null))) {
     return(NULL)
   }
   else {
-    problem_sheet <- readxl::excel_sheets(file$datapath)[sheet]
-    return(paste0("Negative values present on sheet ", problem_sheet, " on row(s) ", paste(sort(unique(which(data < 0) %% dim(data)[1] + 1)), collapse = ", "), "."))
+    error_msg <- paste0("Negative value(s) present on sheet ", names(problem_sheets), " on row(s) ", sapply(problem_sheets, paste, collapse = ", "), ".", collapse = "\n")
+    error_msg <- paste(error_msg, "Please correct data and submit again.")
+    return(error_msg)
   }
 }
 
@@ -105,8 +121,8 @@ has_sample_times_in_range <- function(file) {
     utils::tail(1) |>
     pull()
 
-  all_samples_after_start <- all(lubridate::time_length(pull(sample[, 1]) - start_time_flow, unit = 'min') > 0)
-  all_samples_before_end <- all(lubridate::time_length(end_time_flow - pull(sample[, 1]), unit = 'min') > 0)
+  all_samples_after_start <- all(lubridate::time_length(pull(sample[, 1]) - start_time_flow, unit = 'min') >= 0)
+  all_samples_before_end <- all(lubridate::time_length(end_time_flow - pull(sample[, 1]), unit = 'min') >= 0)
 
   if (all_samples_after_start & all_samples_before_end) {
     return(NULL)
