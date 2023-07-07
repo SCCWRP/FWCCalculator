@@ -1,13 +1,16 @@
-get_sample_bin_breaks <- function(joined, flow, attr = "center") {
-  mins <- unique(joined$mins) |>
-    sort()
-
-  sample_bin_breaks <- numeric(length(mins) + 1)
-  sample_bin_breaks[1] <- flow$mins[1]
-  for (i in 2:length(mins)) {
-    sample_bin_breaks[i] <- mean(c(mins[i-1], mins[i]))
+get_sample_bin_breaks <- function(joined, flow) {
+  if(nrow(joined) == nrow(flow)) {
+    return(joined$mins)
   }
-  sample_bin_breaks[length(sample_bin_breaks)] <- max(flow$mins)
+
+  mins <- unique(joined$mins)
+
+
+  sample_bin_breaks <- stats::filter(mins, rep(1/2, 2), sides = 2)
+
+  sample_bin_breaks[length(sample_bin_breaks)] = max(flow$mins)
+
+  sample_bin_breaks <- c(flow$mins[1], sample_bin_breaks)
 
   sample_bin_breaks <- sapply(sample_bin_breaks, get_nearest_time, flow_mins = flow$mins)
   sample_bin_breaks

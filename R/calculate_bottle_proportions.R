@@ -21,6 +21,9 @@ calculate_bottle_proportions <- function(flow, joined, time_unit, composite_vol 
     V <- trapezoid(sample_bin_breaks, flow, time_unit)
   }
 
+  if(nrow(flow) == nrow(joined)) {
+    joined <- head(joined, -1)
+  }
 
   output <- data.frame(SampleTime = joined$times, AliquotVolume = V/sum(V)*composite_vol, Proportions = V/sum(V), Volume = V)
   output
