@@ -38,7 +38,7 @@ While always discrete, concentration and flowrate data be either paired or unpai
 
 Paired data -- In this application, the area under the hydrograph curve (i.e., the volume weight) is computed using a left-Reimann sum approximation. The average concentration over the interval is determined using a priori attribution approach.
 
-Unpaired -- In this application, the area under the hydrograph curve (i.e., the volume weight) is computed using a trapezoidal approximation. An additional hurdle imposed by the discrete sample data is to determine what portion of the hydrograph data to use as a volume weight.  This application uses a central attribution scheme, wherein a hydrograph segment is attributed to the nearest sample in time.  Taken together, the trapezoidal approximation and central attribution schemes yield a volume weight, $V_i$, for sample $i$ written as
+Unpaired data -- In this application, the area under the hydrograph curve (i.e., the volume weight) is computed using a trapezoidal approximation. An additional hurdle imposed by the discrete sample data is to determine what portion of the hydrograph data to use as a volume weight.  This application uses a central attribution scheme, wherein a hydrograph segment is attributed to the nearest sample in time.  Taken together, the trapezoidal approximation and central attribution schemes yield a volume weight, $V_i$, for sample $i$ written as
 
 $$ V_i = \frac{1}{2} \sum_{i-\frac{1}{2}}^{i+\frac{1}{2}} ( Q_{t+1} + Q_{t-1} ) \Delta t $$
 <div align="right"> 
