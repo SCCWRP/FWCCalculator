@@ -27,7 +27,7 @@ Pollutant mass, $M$, is equal to the integral of instantaneous concentration, $C
 
 The practical problem of solving for an EMC using real world data is evaluating the integrals in Equation 1 using discrete data points. Commonly, the continuous definition of EMC is recast in a discrete form, written as
 
-$$ \text{EMC} = \frac{\int_{0}^{t} C_t Q_t dt}{\int_{0}^{t} Q_t dt} \approx \sum_{i=0}^{k} C_{i} V_{i} (\sum_{i=0}^{k} V_{i})^{-1} $$
+$$ \text{EMC} = \frac{\int_{0}^{t} C_t Q_t dt}{\int_{0}^{t} Q_t dt} \approx \frac{\sum_{i=0}^{k} C_{i} V_{i}}{{\sum_{i=0}^{k} V_{i}}} $$
 
 <div align="right"> 
 Equation 2
