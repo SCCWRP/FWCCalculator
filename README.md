@@ -20,7 +20,6 @@ $$\text{EMC} = \frac{M}{V} = \frac{\int_{0}^{t} C_t Q_t dt}{\int_{0}^{t} Q_t dt}
 Equation 1
 </div>
   
-
 Pollutant mass, $M$, is equal to the integral of instantaneous concentration, $C_t$, multiplied by flow, $Q_t$, while total volume, $V$, is the time integral of flow. The application returns the total volume calculated by the integral of the hydrograph with time; the user can multiply the EMC by the total storm volume to yield mass loading. 
 
 ### Method
@@ -32,9 +31,14 @@ $$ \text{EMC} = \frac{\int_{0}^{t} C_t Q_t dt}{\int_{0}^{t} Q_t dt} \approx \fra
 <div align="right"> 
 Equation 2
 </div>
-  
 
-where $k$ is the number of pollutograph samples taken, $C_i$ is the concentration of the $i^{th}$ water quality sample taken, and $V_i$ is the flow volume that can be attributed to sample $C_i$. Equation 2 effectively represents the EMC as a volume-weighted average concentration, wherein the volume weights are computed as the area under the hydrograph curve that is attributable to a given pollutograph value. In this application, the area under the hydrograph curve (i.e., the volume weight) is computed using a trapezoidal approximation. An additional hurdle imposed by the discrete sample data is to determine what portion of the hydrograph data to use as a volume weight.  This application uses a central attribution scheme, wherein a hydrograph segment is attributed to the nearest sample in time.  Taken together, the trapezoidal approximation and central attribution schemes yield a volume weight, $V_i$, for sample $i$ written as
+where $k$ is the number of pollutograph samples taken, $C_i$ is the concentration of the $i^{th}$ water quality sample taken, and $V_i$ is the flow volume that can be attributed to sample $C_i$. Equation 2 effectively represents the EMC as a volume-weighted average concentration, wherein the volume weights are computed as the area under the hydrograph curve that is attributable to a given pollutograph value.
+
+While always discrete, concentration and flowrate data be either paired or unpaired. Concentration and flowrate data are considered paired if every observation is contemporaneous with the other timeseries; i.e., is there a concentration datapoint for every flowrate value? Paired datasets can be from turbidity and other real-time instruments. Unpaired datasets include grab- and auto-sampling methods of determind the concentration of classical pollutants (e.g., TSS, total phosphorus, etc.). Unpaired datasets tend to have many fewer concentration datapoints than flowrate datapoints, and sample times are not guaranteed to coincide with a flowrate observation. Unpaired datasets remain more common than paired datasets, though both are supported by this calculator.
+
+Paired data -- In this application, the area under the hydrograph curve (i.e., the volume weight) is computed using a left-Reimann sum approximation. The average concentration over the interval is determined using a priori attribution approach.
+
+Unpaired -- In this application, the area under the hydrograph curve (i.e., the volume weight) is computed using a trapezoidal approximation. An additional hurdle imposed by the discrete sample data is to determine what portion of the hydrograph data to use as a volume weight.  This application uses a central attribution scheme, wherein a hydrograph segment is attributed to the nearest sample in time.  Taken together, the trapezoidal approximation and central attribution schemes yield a volume weight, $V_i$, for sample $i$ written as
 
 $$ V_i = \frac{1}{2} \sum_{i-\frac{1}{2}}^{i+\frac{1}{2}} ( Q_{t+1} + Q_{t-1} ) \Delta t $$
 <div align="right"> 
@@ -42,6 +46,8 @@ Equation 3
 </div>
   
 where $i \pm \frac{1}{2}$ corresponds to the time, $t_{i \pm \frac{1}{2}}$, halfway between when sample $i$ and samples $i \pm 1$ were taken. The time interval, $\Delta t$, is the interval between successive hydrograph values, $Q_t$.
+
+Continuous-samples -- In this application, the area under the curve (i.e., the volume weight) is computing using a left-Reimann sum approximation and the concentration is taken from the preceeding
 
 
 ### Supplemental Documentation
