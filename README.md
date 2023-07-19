@@ -54,7 +54,7 @@ Continuous-samples -- In this application, the area under the curve (i.e., the v
 
 The application is currently hosted at https://sccwrp.shinyapps.io/FWC_EMC_Calculator/, with code available under an MIT license at https://github.com/SCCWRP/FWCCalculator/. 
 
-A python version of the flow-weighting calculator from hydrograph and sample data was developed for a BMP monitoring project with the California Department of Transportation. The python script and supplemental data are available at https://github.com/SCCWRP/EMC_calculator_from_depth.
+A python version of the flow-weighting calculator from hydrograph and sample data was developed for a BMP monitoring project with the Southern California Stormater Monitoring Coalition (SMC, https://socalsmc.org/). The python script and supplemental data are available at https://github.com/SCCWRP/EMC_calculator_from_depth.
 
 The application was subject to a Data Product Quality Assurance review process per SCCWRP policy; documentation of which can be found at https://github.com/SCCWRP/FWCCalculator/QA_Documents/.
 
