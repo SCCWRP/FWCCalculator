@@ -19,23 +19,40 @@ has_three_sheets <- function(file) {
 has_two_columns <- function(file) {
   flow <- readxl::read_excel(file$datapath, sheet = 2)
 
+  problem_sheet <- readxl::excel_sheets(file$datapath)[2]
+
   if (dim(flow)[2] == 2) {
     return(NULL)
   }
   else {
-    return("Incorrect number of columns in the flow measurements tab. Tab should have only 2 columns: datetime and flow measurements.")
+    return(paste0("Incorrect number of columns on flow measurements sheet ", problem_sheet, ". Sheet should have only 2 columns: datetime and flow measurements."))
   }
 }
 
-has_no_missing_values <- function(file, sheet) {
-  data <- readxl::read_excel(file$datapath, sheet = sheet)
+has_no_missing_values <- function(file) {
+  sheets <- readxl::excel_sheets(file$datapath)[2:3]
 
-  if (!any(is.na(data))) {
+  problem_sheets <- lapply(
+    sheets,
+    function(sheet) {
+      data <- readxl::read_excel(file$datapath, sheet = sheet)
+      if(any(is.na(data))) {
+        sort(unique(which(is.na(data)) %% dim(data)[1] + 1))
+      }
+    }
+  )
+
+  names(problem_sheets) <- sheets
+
+  problem_sheets <- problem_sheets[!(sapply(problem_sheets, is.null))]
+
+  if (all(sapply(problem_sheets, is.null))) {
     return(NULL)
   }
   else {
-    problem_sheet <- readxl::excel_sheets(file$datapath)[sheet]
-    return(paste0("Missing value(s) present on sheet ", problem_sheet, " on row(s) ", paste(sort(unique(which(is.na(data)) %% dim(data)[1] + 1)), collapse = ", "), "."))
+    error_msg <- paste0("Missing value(s) present on sheet ", names(problem_sheets), " on row(s) ", sapply(problem_sheets, paste, collapse = ", "), ".", collapse = "\n")
+    error_msg <- paste(error_msg, "Please correct data and submit again.")
+    return(error_msg)
   }
 }
 
@@ -47,8 +64,8 @@ has_no_negative_values <- function(file) {
     sheets,
     function(sheet) {
       data <- readxl::read_excel(file$datapath, sheet = sheet)
-      if(any(data < 0)) {
-        sort(unique(which(data < 0) %% dim(data)[1] + 1))
+      if(any(data[, -1] < 0)) {
+        sort(unique(which(data[, -1] < 0) %% dim(data)[1] + 1))
       }
     }
   )
@@ -67,46 +84,84 @@ has_no_negative_values <- function(file) {
   }
 }
 
-has_correct_date_format <- function(file, sheet) {
-  data <- readxl::read_excel(file$datapath, sheet = sheet)
+has_correct_date_format <- function(file) {
+  sheets <- readxl::excel_sheets(file$datapath)[2:3]
 
-  if (all(purrr::map(data, class)[[1]] == c("POSIXct", "POSIXt"))) {
+  problem_sheets <- lapply(
+    sheets,
+    function(sheet) {
+      data <- readxl::read_excel(file$datapath, sheet = sheet)
+      !(all(purrr::map(data, class)[[1]] == c("POSIXct", "POSIXt")))
+    }
+  )
+
+  names(problem_sheets) <- sheets
+
+
+  if (all(sapply(problem_sheets, isFALSE))) {
     return(NULL)
   }
   else {
-    problem_sheet <- readxl::excel_sheets(file$datapath)[sheet]
-    return(paste0("Incorrect date format on sheet ", problem_sheet, ". Please use the template provided in the Instructions tab."))
+    error_msg <- paste0("Incorrect date format on sheet ", names(problem_sheets), ".", collapse = "\n")
+    error_msg <- paste(error_msg, "Please correct data and submit again.")
+    return(error_msg)
   }
 }
 
-has_correct_measurement_format <- function(file, sheet) {
-  data <- readxl::read_excel(file$datapath, sheet = sheet)
+has_correct_measurement_format <- function(file) {
+  sheets <- readxl::excel_sheets(file$datapath)[2:3]
 
-  # purrr::map returns a list of the classes of data, which is desirable since the first column of dates
-  # will have more than 2 classes
-  # then use do.call to iterate through the list and concatenate the resulting classes to ensure they're
-  # all numeric typed, except the first column
-  if (all(do.call(c, purrr::map(data, class)[-1]) == "numeric")) {
+  problem_sheets <- lapply(
+    sheets,
+    function(sheet) {
+      # purrr::map returns a list of the classes of data, which is desirable since the first column of dates
+      # will have more than 2 classes
+      # then use do.call to iterate through the list and concatenate the resulting classes to ensure they're
+      # all numeric typed, except the first column
+      data <- readxl::read_excel(file$datapath, sheet = sheet)
+      !all(do.call(c, purrr::map(data, class)[-1]) == "numeric")
+    }
+  )
+
+  names(problem_sheets) <- sheets
+
+
+  if (all(sapply(problem_sheets, isFALSE))) {
     return(NULL)
   }
   else {
-    problem_sheet <- readxl::excel_sheets(file$datapath)[sheet]
-    return(paste0("Incorrect data type on sheet ", problem_sheet, ". Make sure all measurements have a numeric format."))
+    error_msg <- paste0("Non-numeric data on sheet ", names(problem_sheets), ".", collapse = "\n")
+    error_msg <- paste(error_msg, "Please correct data and submit again.")
+    return(error_msg)
   }
-
 }
 
-has_headers <- function(file, sheet) {
-  data <- readxl::read_excel(file$datapath, sheet = sheet)
-  headers <- names(data)
+has_headers <- function(file) {
+  sheets <- readxl::excel_sheets(file$datapath)[2:3]
 
-  # if any column headers can be coerced to numeric then assume input data is missing headers
-  if (suppressWarnings(all(is.na(as.numeric(headers))))) {
+  problem_sheets <- lapply(
+    sheets,
+    function(sheet) {
+      # purrr::map returns a list of the classes of data, which is desirable since the first column of dates
+      # will have more than 2 classes
+      # then use do.call to iterate through the list and concatenate the resulting classes to ensure they're
+      # all numeric typed, except the first column
+      data <- readxl::read_excel(file$datapath, sheet = sheet)
+      headers <- names(data)
+      suppressWarnings(!all(is.na(as.numeric(headers))))
+    }
+  )
+
+  names(problem_sheets) <- sheets
+
+
+  if (all(sapply(problem_sheets, isFALSE))) {
     return(NULL)
   }
   else {
-    problem_sheet <- readxl::excel_sheets(file$datapath)[sheet]
-    return(paste0("Missing or incorrectly-formatted header(s) on sheet ", problem_sheet, ". The column headers are required and can be renamed as needed, but cannot be exclusively numeric characters [0-9]."))
+    error_msg <- paste0("Missing or incorrectly-formatted header(s) on sheet ", names(problem_sheets), ".", collapse = "\n")
+    error_msg <- paste(error_msg, "The column headers are required and can be renamed as needed, but cannot be exclusively numeric characters [0-9]. Please correct data and submit again.")
+    return(error_msg)
   }
 }
 
