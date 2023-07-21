@@ -31,19 +31,15 @@ server <- function(input, output, session) {
 
   file_validator$add_rule("file", function(file) has_two_columns(file))
 
-  file_validator$add_rule("file", function(file, sheet) has_headers(file, sheet), sheet = 2)
-  file_validator$add_rule("file", function(file, sheet) has_headers(file, sheet), sheet = 3)
+  file_validator$add_rule("file", function(file) has_headers(file))
 
-  file_validator$add_rule("file", function(file, sheet) has_correct_date_format(file, sheet), sheet = 2)
-  file_validator$add_rule("file", function(file, sheet) has_correct_date_format(file, sheet), sheet = 3)
+  file_validator$add_rule("file", function(file) has_correct_date_format(file))
 
   file_validator$add_rule("file", function(file) has_sample_times_in_range(file))
 
-  file_validator$add_rule("file", function(file, sheet) has_correct_measurement_format(file, sheet), sheet = 2)
-  file_validator$add_rule("file", function(file, sheet) has_correct_measurement_format(file, sheet), sheet = 3)
+  file_validator$add_rule("file", function(file) has_correct_measurement_format(file))
 
-  file_validator$add_rule("file", function(file, sheet) has_no_missing_values(file, sheet), sheet = 2)
-  file_validator$add_rule("file", function(file, sheet) has_no_missing_values(file, sheet), sheet = 3)
+  file_validator$add_rule("file", function(file) has_no_missing_values(file))
 
   file_validator$add_rule("file", function(file) has_no_negative_values(file))
 
@@ -269,10 +265,10 @@ server <- function(input, output, session) {
           fluidRow(
             column(
               4,
-              align = "center",
+              align = "left",
               br(),
-              textOutput("volume1"),
               shinyjs::hidden(downloadLink("download_results", "Download Results")),
+              textOutput("volume1"),
               br(),
               shinycssloaders::withSpinner(
                 DT::dataTableOutput("proportions", width = "100%")
@@ -310,10 +306,14 @@ server <- function(input, output, session) {
               4,
               align = "center",
               br(),
-              textOutput("volume2"),
-              shinyjs::hidden(downloadLink("download_results2", "Download Results")),
-              shinycssloaders::withSpinner(
-                DT::dataTableOutput("conc_table", width = "100%")
+              div(
+                div(
+                  "Original Data",
+                  style="color:black; font-weight: bold; text-align: left"
+                ),
+                shinycssloaders::withSpinner(
+                  DT::dataTableOutput("conc_table", width = "100%")
+                )
               )
             ),
             column(
@@ -321,13 +321,13 @@ server <- function(input, output, session) {
               alignt = "center",
               br(),
               br(),
-              br(),
-              br(),
-              br(),
+              shinyjs::hidden(downloadLink("download_results2", "Download Results")),
+              textOutput("volume2"),
               div(
                 shinycssloaders::withSpinner(
                   tableOutput("EMC_table")
                 ),
+                "Note: All values rounded to thousandths place. Precision not implied.",
                 style = "overflow-y:auto"
               )
             ),
@@ -560,20 +560,25 @@ server <- function(input, output, session) {
       pull() |>
       length()
 
+    emc_out <- tryCatch(
+      {
+        if(nrow(flow) == (nrow(sample) / num_concs)) {
+          emc_out <- sample |>
+            group_by(conc) |>
+            slice_head(n=-1) |>
+            summarize(conc_values = round(as.numeric(props$Proportions%*%conc_values), 3)) |>
+            rename(`Pollutant` = conc, `Event Mean Concentration` = conc_values)
+          return(emc_out)
+        }
 
-    if(nrow(flow) == (nrow(sample) / num_concs)) {
-      emc_out <- sample |>
-        group_by(conc) |>
-        slice_head(n=-1) |>
-        summarize(conc_values = signif(as.numeric(props$Proportions%*%conc_values), 3)) |>
-        rename(`Pollutant` = conc, `Event Mean Concentration` = conc_values)
-      return(emc_out)
-    }
+        emc_out <- sample |>
+          group_by(conc) |>
+          summarize(conc_values = round(as.numeric(props$Proportions%*%conc_values), 3)) |>
+          rename(`Pollutant` = conc, `Event Mean Concentration` = conc_values)
+      },
+      error = function(cond) return(tibble(`Pollutant` = NA, `Event Mean Concentration` = NA))
+    )
 
-    emc_out <- sample |>
-      group_by(conc) |>
-      summarize(conc_values = signif(as.numeric(props$Proportions%*%conc_values), 3)) |>
-      rename(`Pollutant` = conc, `Event Mean Concentration` = conc_values)
 
     emc_out
   })
@@ -583,7 +588,7 @@ server <- function(input, output, session) {
     emc <- EMC()
     shinyjs::show("download_results2")
     emc
-  }, striped = TRUE, display = c("d", "s", "fg")) |>
+  }, striped = TRUE, display = c("d", "s", "f"), digits = 3) |>
     bindEvent(input$redraw_graph)
 
   ########
@@ -656,8 +661,7 @@ server <- function(input, output, session) {
                   labels = scales::label_date(format = "%m-%d %H:%M"),
                   limits = c(input_start_utc(), input_end_utc()),
                   expand = expansion()
-                ) +
-                ylim(ymin, ymax())
+                )
             }
           )
 
@@ -726,4 +730,16 @@ server <- function(input, output, session) {
       )
     }
   )
+  # image rendering
+  output$missing_val <- renderImage({
+    list(src = "img/missing_val_error.png", width="555px", height="240px")
+  }, deleteFile = FALSE)
+
+  output$merged_cells <- renderImage({
+    list(src = "img/merged_cells.png", width="578px", height="201px")
+  }, deleteFile = FALSE)
+
+  output$repeated_cells <- renderImage({
+    list(src = "img/repeated_cells.png", width="578px", height="201px")
+  }, deleteFile = FALSE)
 }

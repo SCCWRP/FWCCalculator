@@ -3,14 +3,7 @@ markdown_text <- httr::GET("https://raw.githubusercontent.com/SCCWRP/FWCCalculat
 
 ui <- fluidPage(
   shinyjs::useShinyjs(),
-  # HTML('<input type="text" id="client_time_zone_offset" name="client_time_zone_offset" style="display: none;"> '),
-  #
-  # tags$script('
-  #   $(function() {
-  #     var time_now = new Date()
-  #     $("input#client_time_zone_offset").val(time_now.getTimezoneOffset())
-  #   });
-  # '),
+
   tags$head(tags$style(paste0('body {font-size: ', global_font_size, 'px}
                               .action-button {font-size: ', global_font_size, 'px}
                               #volume1 {font-weight: bold}
@@ -256,8 +249,43 @@ ui <- fluidPage(
       br(),
       HTML(
         '
-        If you have any questions, please contact us at
+        If you have any additional questions, please contact us at
           <a href="mailto:stormwater@sccwrp.org?subject=Flow-Weighting and Compositing Calculator Question">stormwater@sccwrp.org</a>.
+        '
+      ),
+      br(),
+      HTML(
+        '
+        <h3>Frequently Asked Questions (FAQs)</h3>
+
+        <p>Question: Can I upload multiple storms for batch processing?
+        <br>Answer: No, the present version of the calculator only supports single event processing.
+        </p>
+
+
+        <p>Question: Can I upload multiple pollutants?
+        <br>Answer: Yes, but every pollutant must have a concentration value in every row with a timestamp on Sheet 2. For example, the following Sheet 2 upload will return a Missing Values error message for the Total Copper column.
+        </p>
+        '
+      ),
+      imageOutput("missing_val", height="240px"),
+      br(),
+      HTML(
+        '
+        <p>Question: How do I represent intermediate composites? For example, I\'ve sampled for TSS and Total Copper, but I combined every other TSS sample to reduce overall lab costs.
+        <br>Answer: See the following example. The first submission will return an error message, but the second will pass.
+        </p>
+        '
+      ),
+      imageOutput("merged_cells", height="201px"),
+      br(),
+      imageOutput("repeated_cells", height="201px"),
+      br(),
+      HTML(
+        '
+        <p>Question: How do I know if I have paired or unpaired data?
+        <br>Answer: Data is paired if the array of timestamps for flowrate is identical to the array of timestamps for concentration. In other words, for every flowrate observation there is a concentration value and vis versa.
+        </p>
         '
       )
     ),
