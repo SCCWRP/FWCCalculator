@@ -28,86 +28,138 @@ ui <- fluidPage(
       "This web application has been developed to enable consistent, transparent, easily applied calculations for post-storm flow-weighting and compositing and/or to generate an Event Mean Concentration (EMC) from a pollutograph. The web app provides flow-weighted compositing instructions based on a user-uploaded hydrograph and times of sample collection, or returns an EMC based on a user-uploaded hydrograph and pollutograph. Total hydrograph volume is also returned so that users may determine a mass load from the EMC."
     ),
     column(
-      2,
+      3,
       align = "left",
-      div(
-        fileInput(
-          "file",
-          "Choose Excel File",
-          multiple = FALSE,
-          accept = ".xlsx"
-        ),
-        style = 'overflow-y:auto; height: 300px'
+      strong("Step 1: Download Template"),
+      br(),
+      column(
+        12,
+        "Overwrite the template with your data. See Data Requirements section below.",
+        br(),
+        downloadButton("download_template1"),
+        br(),
+        br()
+      ),
+      strong("Step 2: Submit Data"),
+      column(
+        9,
+        div(
+          fileInput(
+            "file",
+            "Choose Excel File",
+            multiple = FALSE,
+            accept = ".xlsx"
+          ),
+          style = 'overflow-y:auto; height: 300px;'
+        )
+      ),
+      column(
+        3,
+        br(),
+        shinyjs::disabled(
+          actionButton("submit", "Submit")
+        )
       )
     ),
     column(
       3,
       align = "left",
-      column(
-        4,
-        align = "left",
-        shinyjs::disabled(
-          dateInput(
-            "start_date",
-            label = "Start Date",
-            value = Sys.Date(),
-            autoclose = TRUE
+      fluidRow(
+        strong("Step 3: Select Input Filter Parameters")
+      ),
+      fluidRow(
+        column(
+          4,
+          shinyjs::disabled(
+            dateInput(
+              "start_date",
+              label = "Start Date",
+              value = Sys.Date(),
+              autoclose = TRUE
+            )
           )
         ),
-        shinyjs::disabled(
-          dateInput(
-            "end_date",
-            label = "End Date",
-            value = Sys.Date(),
-            autoclose = TRUE
+        column(
+          8,
+          shinyjs::disabled(
+            shinyTime::timeInput(
+              "start_time",
+              label = div("Start Time", style="color:black"),
+              value = lubridate::hm("12:00"),
+              seconds = FALSE
+            )
+          )
+        )
+      ),
+      fluidRow(
+        column(
+          4,
+          shinyjs::disabled(
+            dateInput(
+              "end_date",
+              label = "End Date",
+              value = Sys.Date(),
+              autoclose = TRUE
+            )
           )
         ),
-        shinyjs::disabled(
-          numericInput(
-            "composite_vol",
-            "Composite Vol. (mL)",
-            value = 1000,
-            min = 500,
-            max = 10000,
+        column(
+          8,
+          shinyjs::disabled(
+            shinyTime::timeInput(
+              "end_time",
+              label = div("End Time", style="color:black"),
+              value = lubridate::hm("12:00"),
+              seconds = FALSE
+            )
+          )
+        )
+      ),
+      fluidRow(
+        column(
+          4,
+          shinyjs::disabled(
+            numericInput(
+              "composite_vol",
+              "Composite Vol. (mL)",
+              value = 1000,
+              min = 500,
+              max = 10000,
+              width = "200px"
+            )
+          )
+        ),
+        column(
+          8,
+          selectInput(
+            "flow_units",
+            "Flow Units of Submitted Data",
+            c(`L/s` = "L/s", `gal/min (gpm)` = "gal/min", `ft³/s (cfs)` = "ft³/s"),
+            selected = "L/s",
             width = "200px"
           )
         )
       ),
-      column(
-        8,
-        align = "left",
-        shinyjs::disabled(
-          shinyTime::timeInput(
-            "start_time",
-            label = div("Start Time", style="color:black"),
-            value = lubridate::hm("12:00"),
-            seconds = FALSE
+      fluidRow(
+        column(
+          12,
+          textInput(
+            inputId = "title",
+            label = "Graph Title",
+            placeholder = "Enter an optional title for the graph(s)",
+            value = "",
+            width = "100%"
           )
-        ),
-        shinyjs::disabled(
-          shinyTime::timeInput(
-            "end_time",
-            label = div("End Time", style="color:black"),
-            value = lubridate::hm("12:00"),
-            seconds = FALSE
-          )
-        ),
-        selectInput(
-          "flow_units",
-          "Flow Units of Submitted Data",
-          c(`L/s` = "L/s", `gal/min (gpm)` = "gal/min", `ft³/s (cfs)` = "ft³/s"),
-          selected = "L/s",
-          width = "200px"
         )
       ),
-      column(
-        12,
-        textInput(
-          inputId = "title",
-          label = "Graph Title",
-          placeholder = "Enter an optional title for the graph(s)",
-          value = "",
-          width = "100%"
+      fluidRow(
+        strong("Step 4: Draw Graph(s)"),
+        br(),
+        column(
+          12,
+          shinyjs::disabled(
+            actionButton("redraw_graph", "Draw Graph(s)", width = "175px")
+          )
         )
       )
     ),
@@ -118,19 +170,6 @@ ui <- fluidPage(
       actionButton("reset_button", "Reload App", width = "175px"),
       br(),
       br(),
-      shinyjs::disabled(
-        actionButton("redraw_graph", "Redraw Graph(s)", width = "175px")
-      ),
-      br(),
-      br(),
-      shinyjs::disabled(
-        actionButton("submit", "Submit")
-      ),
-    ),
-    column(
-      2,
-      align = "left",
-      br(),
       shinyWidgets::actionBttn(
         "feedback",
         "Feedback Form",
@@ -138,9 +177,10 @@ ui <- fluidPage(
         onclick ="window.open('https://forms.office.com/pages/responsepage.aspx?id=PfKopOEaHEuZAuqhUwKBkNb1vpfauiZNit2g-l_MjnRUNVJWVFlFRzdLOVVPODlYMllLNjE3RU44Vy4u&web=1&wdLOR=cBEFC20B7-3BF7-4F6B-ADE9-65CD584DA1A3', '_blank')"
       ),
       br(),
+      br(),
       shinyWidgets::actionBttn(
         "apidoc",
-        "Access the code & documentation on GitHub",
+        HTML("Access the code & <br> documentation on GitHub"),
         width = '250px',
         onclick ="window.open('https://github.com/SCCWRP/FWCCalculator', '_blank')"
       )
@@ -154,7 +194,7 @@ ui <- fluidPage(
       HTML("
         <ol>
           <li>
-            Download the Excel template file ",), downloadLink("download_template", label = "here"), HTML(" and overwrite it with your data. See the Data Requirements section below. <br><strong>NOTE</strong>: a 'download.htm' file may be downloaded instead of the template Excel file if the link is clicked too soon after launching the application. This is a known issue with the 'shiny' R package which was used to develop this application. Please allow a few minutes before downloading the template.
+            Download the Excel template file ",), downloadLink("download_template2", label = "here"), HTML(" and overwrite it with your data. See the Data Requirements section below. <br><strong>NOTE</strong>: a 'download.htm' file may be downloaded instead of the template Excel file if the link is clicked too soon after launching the application. This is a known issue with the 'shiny' R package which was used to develop this application. Please allow a few minutes before downloading the template.
           </li>
           <li>
             Upload your data by clicking the 'Browse' button, selecting the updated Excel spreadsheet, and clicking the 'Submit' button. The calculator will generate the aliquot volume table as well as the hydrograph and pollutograph(s), depending on the uploaded data. If pollutant data is provided, the calculator will also provide the Event Mean Concentration for each of the specified pollutants.

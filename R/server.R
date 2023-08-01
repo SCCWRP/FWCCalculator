@@ -58,7 +58,14 @@ server <- function(input, output, session) {
 
   ########
 
+  ######## Start and end time validation
+  observe({
 
+  }) |>
+    bindEvent(input$submit)
+
+
+  ########
 
   ######## Initial data input from excel file, set some global values related to data()
   data <- reactive({
@@ -97,6 +104,10 @@ server <- function(input, output, session) {
       inputId = "end_time",
       value = datetime_max
     )
+
+    shinyjs::toggleState("submit")
+    shinyjs::toggleState("file")
+    shinyjs::runjs('$("#file").parents("span").addClass("disabled")')
 
 
     data_out
@@ -206,6 +217,9 @@ server <- function(input, output, session) {
       updateDateInput(session = session, inputId = "end_date", value = lubridate::date(ifelse(lower_mins() + 30 <= xmax(),  date_min() + lubridate::minutes(30), date_max())))
 
     }
+
+    updateActionButton(inputId = "redraw_graph", label = "Redraw Graph(s)")
+
   }) |>
     bindEvent(input$redraw_graph)
 
@@ -611,7 +625,7 @@ server <- function(input, output, session) {
   # (downloads a 'download.htm' file instead)
   # this happens with the datatemplate if user tries to download the template
   # until about 30 seconds after loading
-  output$download_template <- downloadHandler(
+  output$download_template1 <- output$download_template2 <- downloadHandler(
     filename = "Flow-Weighting_Template.xlsx",
     content = function(file) {
       template_path <- "inst/extdata/DataTemplate.xlsx"
