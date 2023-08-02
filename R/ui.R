@@ -65,17 +65,23 @@ ui <- fluidPage(
       3,
       align = "left",
       fluidRow(
-        strong("Step 3: Select Input Filter Parameters")
+        strong("Step 3: Select Input Filter Parameters"),
+        column(
+          12,
+          "The Start and End Date/Time inputs reduce the graphs to the time period of interest. The Composite Volume input controls the total volume in the Aliquot Volume calculation, with a minimum of 500 mL and maximum of 10,000 mL. Start and End Dates/Times outside the time range of the submitted data are reset to the beginning and end of the submitted data, respectively."
+        )
       ),
       fluidRow(
         column(
           4,
           shinyjs::disabled(
-            dateInput(
-              "start_date",
-              label = "Start Date",
-              value = Sys.Date(),
-              autoclose = TRUE
+            tagAppendAttributes(
+              dateInput(
+                "start_date",
+                label = "Start Date",
+                autoclose = TRUE
+              ),
+              onkeydown ='return false'
             )
           )
         ),
@@ -95,11 +101,13 @@ ui <- fluidPage(
         column(
           4,
           shinyjs::disabled(
-            dateInput(
-              "end_date",
-              label = "End Date",
-              value = Sys.Date(),
-              autoclose = TRUE
+            tagAppendAttributes(
+              dateInput(
+                "end_date",
+                label = "End Date",
+                autoclose = TRUE
+              ),
+              onkeydown = 'return false'
             )
           )
         ),
@@ -139,8 +147,14 @@ ui <- fluidPage(
             width = "200px"
           )
         )
-      ),
+      )
+    ),
+    column(
+      2,
+      align = "left",
       fluidRow(
+        strong("Step 4: Draw Graph(s)"),
+        br(),
         column(
           12,
           textInput(
@@ -149,23 +163,16 @@ ui <- fluidPage(
             placeholder = "Enter an optional title for the graph(s)",
             value = "",
             width = "100%"
-          )
-        )
-      ),
-      fluidRow(
-        strong("Step 4: Draw Graph(s)"),
-        br(),
-        column(
-          12,
+          ),
           shinyjs::disabled(
             actionButton("redraw_graph", "Draw Graph(s)", width = "175px")
           )
         )
-      )
-    ),
-    column(
-      2,
-      align = "left",
+      ),
+      br(),
+      br(),
+      br(),
+      strong("Submit New Data"),
       br(),
       actionButton("reset_button", "Reload App", width = "175px"),
       br(),
@@ -203,13 +210,16 @@ ui <- fluidPage(
             Use the 'Start Date/Time' and 'End Date/Time' inputs to filter the data to the appropriate time range. The grayed-out sections of the graph will <i>not</i> be included in the aliquot volume and event mean concentration calculations.
           </li>
           <li>
-            After changing the 'Start Date/Time' and 'End Date/Time' inputs, click the 'Redraw Graph(s)' button to regenerate the aliquot volume table, hydrograph, and pollutograph(s), filtered to the provided times.
+            After changing the 'Start Date/Time' and 'End Date/Time' inputs, click the 'Draw Graph(s)' button to regenerate the aliquot volume table, hydrograph, and pollutograph(s), filtered to the provided times.
           </li>
           <li>
-            The 'Composite Vol.' input is used in the aliquot volume calculation such that the sum of the aliquot volumes will be equal to the composite volume value entered here, measured in mL.
+            The 'Composite Vol.' input is used in the aliquot volume calculation such that the sum of the aliquot volumes will be equal to the composite volume value entered here, measured in mL. The minimum and maximum supported values are 500 mL and 10,000 mL, respectively.
           </li>
           <li>
             The 'Flow Units of Submitted Data' input is used to label and calculate the 'Total Hydrograph Volume' output.
+          </li>
+          <li>
+            Use the 'Reload App' button to submit a new data set.
           </li>
         </ol>
            "),
@@ -218,9 +228,12 @@ ui <- fluidPage(
       HTML("The uploaded Excel spreadsheet must conform to the following requirements:
         <ul>
           <li>
-            Must contain exactly two sheets, in the following order:
+            Must contain exactly three sheets, in the following order:
           </li>
           <ul>
+            <li>
+              Instructions: instructions for using the calculator
+            </li>
             <li>
               Sheet 1: flow rate measurement data
             </li>
