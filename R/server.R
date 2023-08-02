@@ -37,35 +37,38 @@ server <- function(input, output, session) {
 
   file_validator$add_rule("file", function(file) has_sample_times_in_range(file))
 
-  file_validator$add_rule("file", function(file) has_correct_measurement_format(file))
-
   file_validator$add_rule("file", function(file) has_no_missing_values(file))
 
   file_validator$add_rule("file", function(file) has_no_negative_values(file))
 
+  file_validator$add_rule("file", function(file) has_correct_measurement_format(file))
+
+
+
+
   observe({
     file_validator$enable()
-    shinyjs::toggleState("start_date", file_validator$is_valid())
-    shinyjs::toggleState("start_time", file_validator$is_valid())
-    shinyjs::toggleState("end_date", file_validator$is_valid())
-    shinyjs::toggleState("end_time", file_validator$is_valid())
     shinyjs::toggleState("composite_vol", file_validator$is_valid())
     shinyjs::toggleState("flow_units", file_validator$is_valid())
-    shinyjs::toggleState("redraw_graph", file_validator$is_valid())
     shinyjs::toggleState("submit", file_validator$is_valid())
   }) |>
     bindEvent(req(input$file))
 
-  ########
-
-  ######## Start and end time validation
   observe({
+    shinyjs::toggleState("start_date", file_validator$is_valid())
+    shinyjs::toggleState("start_time", file_validator$is_valid())
+    shinyjs::toggleState("end_date", file_validator$is_valid())
+    shinyjs::toggleState("end_time", file_validator$is_valid())
+  }) |>
+    bindEvent(input$redraw_graph)
 
+  observe({
+    shinyjs::toggleState("redraw_graph", file_validator$is_valid())
   }) |>
     bindEvent(input$submit)
 
-
   ########
+
 
   ######## Initial data input from excel file, set some global values related to data()
   data <- reactive({
@@ -167,8 +170,9 @@ server <- function(input, output, session) {
   # delay so that all filtered data has time to get updated correctly before drawing graphs
   observe({
     shinyjs::delay(10, shinyjs::click("redraw_graph"))
+
   }) |>
-    bindEvent(data())
+    bindEvent(input$submit)
 
   # graph limits
   ymin <- 0
@@ -194,34 +198,49 @@ server <- function(input, output, session) {
   ########
 
 
-  # update numeric inputs on invalid values
+
+  input_start_utc_d <- debounce(reactive({input_start_utc()}), 500)
+  input_end_utc_d <- debounce(reactive({input_end_utc()}), 500)
+
+  # update inputs on invalid values
   observe({
-    if (lower_mins() < xmin | is.na(lower_mins())) {
+    if (input_start_utc_d() < date_min()) {
       shinyTime::updateTimeInput(session = session, inputId = "start_time", value = date_min())
       updateDateInput(session = session, inputId = "start_date", value = lubridate::date(date_min()))
     }
-    if (upper_mins() > xmax() | is.na(upper_mins())) {
+    if (input_end_utc_d() > date_max()) {
       shinyTime::updateTimeInput(session = session, inputId = "end_time", value = date_max())
       updateDateInput(session = session, inputId = "end_date", value = lubridate::date(date_max()))
     }
-    if (lower_mins() > xmax()) {
-      shinyTime::updateTimeInput(session = session, inputId = "start_time", value = date_max() - lubridate::minutes(30))
-      updateDateInput(session = session, inputId = "start_date", value = lubridate::date(date_max() - lubridate::minutes(30)))
+    if (input_start_utc_d() > date_max()) {
+      shinyTime::updateTimeInput(session = session, inputId = "start_time", value = date_min())
+      updateDateInput(session = session, inputId = "start_date", value = lubridate::date(date_min()))
 
       shinyTime::updateTimeInput(session = session, inputId = "end_time", value = date_max())
       updateDateInput(session = session, inputId = "end_date", value = lubridate::date(date_max()))
-
     }
-    if (lower_mins() > upper_mins()) {
-      shinyTime::updateTimeInput(session = session, inputId = "end_time", value = ifelse(lower_mins() + 30 <= xmax(),  date_min() + lubridate::minutes(30), date_max()))
-      updateDateInput(session = session, inputId = "end_date", value = lubridate::date(ifelse(lower_mins() + 30 <= xmax(),  date_min() + lubridate::minutes(30), date_max())))
+    if (input_start_utc_d() > input_end_utc_d()) {
+      shinyTime::updateTimeInput(session = session, inputId = "start_time", value = date_min())
+      updateDateInput(session = session, inputId = "start_date", value = lubridate::date(date_min()))
 
+      shinyTime::updateTimeInput(session = session, inputId = "end_time", value = date_max())
+      updateDateInput(session = session, inputId = "end_date", value = lubridate::date(date_max()))
     }
+  })
 
-    updateActionButton(inputId = "redraw_graph", label = "Redraw Graph(s)")
 
-  }) |>
-    bindEvent(input$redraw_graph)
+
+  input_comp_vol <- debounce(reactive({input$composite_vol}), 1000)
+
+  observe({
+    if (input_comp_vol() > 10000 | is.na(input_comp_vol()) | input_comp_vol() < 500) {
+      updateNumericInput(inputId = "composite_vol", value = 1000)
+    }
+  })
+
+
+
+
 
   # data that is filtered between the start and end time inputs, used for drawing graphs,
   # aliquot and EMC calculations
