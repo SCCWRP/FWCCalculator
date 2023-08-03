@@ -1,6 +1,8 @@
 get_sample_bin_breaks <- function(joined, flow) {
   if(nrow(joined) == nrow(flow)) {
     return(joined$mins)
+  } else if(nrow(joined) == 1) {
+    return(c(min(flow$mins), max(flow$mins)))
   }
 
   mins <- unique(joined$mins)
