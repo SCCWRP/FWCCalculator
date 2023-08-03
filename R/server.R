@@ -39,9 +39,11 @@ server <- function(input, output, session) {
 
   file_validator$add_rule("file", function(file) has_no_missing_values(file))
 
+  file_validator$add_rule("file", function(file) has_correct_measurement_format(file))
+
   file_validator$add_rule("file", function(file) has_no_negative_values(file))
 
-  file_validator$add_rule("file", function(file) has_correct_measurement_format(file))
+
 
 
 
