@@ -97,6 +97,8 @@ has_correct_date_format <- function(file) {
 
   names(problem_sheets) <- sheets
 
+  problem_sheets <- problem_sheets[sapply(problem_sheets, isTRUE)]
+
 
   if (all(sapply(problem_sheets, isFALSE))) {
     return(NULL)
@@ -124,6 +126,8 @@ has_correct_measurement_format <- function(file) {
   )
 
   names(problem_sheets) <- sheets
+
+  problem_sheets <- problem_sheets[sapply(problem_sheets, isTRUE)]
 
 
   if (all(sapply(problem_sheets, isFALSE))) {
@@ -154,6 +158,7 @@ has_headers <- function(file) {
 
   names(problem_sheets) <- sheets
 
+  problem_sheets <- problem_sheets[sapply(problem_sheets, isTRUE)]
 
   if (all(sapply(problem_sheets, isFALSE))) {
     return(NULL)

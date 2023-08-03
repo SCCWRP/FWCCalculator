@@ -90,7 +90,7 @@ test_that("measurement format check returns correct type", {
   expect_type(has_correct_measurement_format(incorrect_measurement_format), "character")
 })
 
-inc_measurement_error <- "Non-numeric data on sheet Hydrograph.\nNon-numeric data on sheet Pollutograph. Please correct data and submit again."
+inc_measurement_error <- "Non-numeric data on sheet Pollutograph. Please correct data and submit again."
 
 test_that("measurement format returns correct sheet", {
   expect_equal(has_correct_measurement_format(incorrect_measurement_format), inc_measurement_error)
