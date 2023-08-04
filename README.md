@@ -56,6 +56,6 @@ The application is currently hosted at https://sccwrp.shinyapps.io/FWC_EMC_Calcu
 
 A python version of the flow-weighting calculator from hydrograph and sample data was developed for a BMP monitoring project with the Southern California Stormater Monitoring Coalition (SMC, https://socalsmc.org/). The python script and supplemental data are available at https://github.com/SCCWRP/EMC_calculator_from_depth.
 
-The application was subject to a Data Product Quality Assurance review process per SCCWRP policy; documentation of which can be found at https://github.com/SCCWRP/FWCCalculator/QA_Documents/.
+The application was subject to a Data Product Quality Assurance review process per SCCWRP policy; documentation of which can be found at [https://github.com/SCCWRP/FWCCalculator/QA_Documents/](https://github.com/SCCWRP/FWCCalculator/tree/main/QA_Documents).
 
 There is an open question regarding the effect of integration approximation, sample-flow attribution schemes, and data resolution on the overall outcome of the EMC.  A sensitivity analysis comparing various solution schemes for the EMC is being compiled as part of a Journal Article in preparation.
