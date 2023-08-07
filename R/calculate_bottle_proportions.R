@@ -1,4 +1,9 @@
 calculate_bottle_proportions <- function(flow, joined, time_unit, composite_vol = 1000, method = 'trapezoid') {
+  #browser()
+  if(composite_vol < 500) {
+    composite_vol <- 1000
+  }
+
   flow_row_num <- dim(flow)[1]
   joined_row_num <- dim(joined)[1]
 

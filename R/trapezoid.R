@@ -8,7 +8,7 @@ trapezoid <- function(sample_bin_breaks, flow, time_unit) {
   }
 
   df_list <- lapply(bins, function(x) {
-      flow[which(flow$mins %in% sample_bin_breaks[x]:sample_bin_breaks[x+1]), c("mins", "flow_values")]
+      flow[which(between(flow$mins, sample_bin_breaks[x], sample_bin_breaks[x+1])), c("mins", "flow_values")]
     }
   )
 
