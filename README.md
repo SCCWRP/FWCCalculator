@@ -34,7 +34,7 @@ Equation 2
 
 where $k$ is the number of pollutograph samples taken, $C_i$ is the concentration of the $i^{th}$ water quality sample taken, and $V_i$ is the flow volume that can be attributed to sample $C_i$. Equation 2 effectively represents the EMC as a volume-weighted average concentration, wherein the volume weights are computed as the area under the hydrograph curve that is attributable to a given pollutograph value.
 
-While always discrete, concentration and flowrate data be either paired or unpaired. Concentration and flowrate data are considered paired if every observation is contemporaneous with the other timeseries; i.e., is there a concentration datapoint for every flowrate value? Paired datasets can be from turbidity and other real-time instruments. Unpaired datasets include grab- and auto-sampling methods of determind the concentration of classical pollutants (e.g., TSS, total phosphorus, etc.). Unpaired datasets tend to have many fewer concentration datapoints than flowrate datapoints, and sample times are not guaranteed to coincide with a flowrate observation. Unpaired datasets remain more common than paired datasets, though both are supported by this calculator.
+While always discrete, concentration and flowrate data be either paired or unpaired. Concentration and flowrate data are considered paired if every observation is contemporaneous with the other timeseries; i.e., is there a concentration datapoint for every flowrate value? Paired datasets can be from turbidity and other real-time instruments. Unpaired datasets include grab- and auto-sampling methods of determining the concentration of classical pollutants (e.g., TSS, total phosphorus, etc.). Unpaired datasets tend to have many fewer concentration datapoints than flowrate datapoints, and sample times are not guaranteed to coincide with a flowrate observation. Unpaired datasets remain more common than paired datasets, though both are supported by this calculator.
 
 Paired data -- In this application, the area under the hydrograph curve (i.e., the volume weight) is computed using a left-Reimann sum approximation. The average concentration for a computed volume is determined by the concentration value at the start of the interval, i.e., a priori attribution method from Tiernan et al. (IN PREPARATION). 
 
@@ -56,6 +56,8 @@ The application is currently hosted at https://sccwrp.shinyapps.io/FWC_EMC_Calcu
 
 A python version of the flow-weighting calculator from hydrograph and sample data was developed for a BMP monitoring project with the Southern California Stormater Monitoring Coalition (SMC, https://socalsmc.org/). The python script and supplemental data are available at https://github.com/SCCWRP/EMC_calculator_from_depth.
 
-The application was subject to a Data Product Quality Assurance review process per SCCWRP policy; documentation of which can be found at https://github.com/SCCWRP/FWCCalculator/QA_Documents/.
+The application was subject to a Data Product Quality Assurance review process per SCCWRP policy; documentation of which can be found at [https://github.com/SCCWRP/FWCCalculator/QA_Documents/](https://github.com/SCCWRP/FWCCalculator/tree/main/QA_Documents).
 
 There is an open question regarding the effect of integration approximation, sample-flow attribution schemes, and data resolution on the overall outcome of the EMC.  A sensitivity analysis comparing various solution schemes for the EMC is being compiled as part of a Journal Article in preparation.
+
+Contact: <a href='mailto:edwardt@sccwrp.org'>Edward Tiernan</a>
