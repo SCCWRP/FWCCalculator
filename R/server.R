@@ -217,9 +217,6 @@ server <- function(input, output, session) {
     if (input_start_utc_d() > date_max()) {
       shinyTime::updateTimeInput(session = session, inputId = "start_time", value = date_min())
       updateDateInput(session = session, inputId = "start_date", value = lubridate::date(date_min()))
-
-      shinyTime::updateTimeInput(session = session, inputId = "end_time", value = date_max())
-      updateDateInput(session = session, inputId = "end_date", value = lubridate::date(date_max()))
     }
     if (input_start_utc_d() > input_end_utc_d()) {
       shinyTime::updateTimeInput(session = session, inputId = "start_time", value = date_min())
