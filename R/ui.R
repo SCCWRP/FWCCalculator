@@ -25,16 +25,16 @@ ui <- fluidPage(
   fluidRow(
     column(
       3,
-      p("This web application has been developed to enable consistent, transparent, easily applied calculations for post-storm flow-weighting and compositing and/or to generate an Event Mean Concentration (EMC) from a pollutograph. The web app provides flow-weighted compositing instructions based on a user-uploaded hydrograph and times of sample collection, or returns an EMC based on a user-uploaded hydrograph and pollutograph. Total hydrograph volume is also returned so that users may determine a mass load from the EMC."),
-      h4(strong("Known Issues")),
-      p("This is a beta release of the application. The following are known issues and will be addressed in the next beta release of the application."),
-      HTML('
-        <ul>
-          <li>
-            In the case where sample data have one less row than the flow data and start at the same time as the flow data, no output is generated.
-          </li>
-        </ul>
-      ')
+      p("This web application has been developed to enable consistent, transparent, easily applied calculations for post-storm flow-weighting and compositing and/or to generate an Event Mean Concentration (EMC) from a pollutograph. The web app provides flow-weighted compositing instructions based on a user-uploaded hydrograph and times of sample collection, or returns an EMC based on a user-uploaded hydrograph and pollutograph. Total hydrograph volume is also returned so that users may determine a mass load from the EMC.")#,
+      #h4(strong("Known Issues")),
+      # p("This is a beta release of the application. The following are known issues and will be addressed in the next beta release of the application."),
+      # HTML('
+      #   <ul>
+      #     <li>
+      #       In the case where sample data have one less row than the flow data and start at the same time as the flow data, no output is generated.
+      #     </li>
+      #   </ul>
+      # ')
     ),
     column(
       3,
