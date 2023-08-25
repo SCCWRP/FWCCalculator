@@ -77,7 +77,7 @@ ui <- fluidPage(
         strong("Step 3: Select Input Filter Parameters"),
         column(
           12,
-          "The Start and End Date/Time inputs reduce the graphs to the time period of interest. The Composite Volume input controls the total volume in the Aliquot Volume calculation, with a minimum of 500 mL and maximum of 10,000 mL. Start and End Dates/Times outside the time range of the submitted data are reset to the beginning and end of the submitted data, respectively."
+          "Optional: The Start and End Date/Time inputs can be used to reduce the calculations to the time period of interest. Start and End Dates/Times outside the time range of the submitted data are reset to the beginning and end of the submitted data, respectively. The Composite Volume input controls the total volume in the Aliquot Volume calculation, with a minimum of 500 mL and maximum of 10,000 mL."
         )
       ),
       fluidRow(
