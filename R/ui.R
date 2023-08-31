@@ -52,6 +52,7 @@ ui <- fluidPage(
       strong("Step 2: Submit Data"),
       column(
         9,
+        "If pollutant data is provided, concentrations must be exclusively numeric values.",
         div(
           fileInput(
             "file",
@@ -64,6 +65,9 @@ ui <- fluidPage(
       ),
       column(
         3,
+        br(),
+        br(),
+        br(),
         br(),
         shinyjs::disabled(
           actionButton("submit", "Submit")
@@ -225,7 +229,7 @@ ui <- fluidPage(
             The 'Composite Vol.' input is used in the aliquot volume calculation such that the sum of the aliquot volumes will be equal to the composite volume value entered here, measured in mL. The minimum and maximum supported values are 500 mL and 10,000 mL, respectively.
           </li>
           <li>
-            The 'Flow Units of Submitted Data' input is used to label and calculate the 'Total Hydrograph Volume' output.
+            The 'Flow Units of Submitted Data' input is used to label and calculate the 'Total Hydrograph Volume' output. This input does not function as a unit conversion.
           </li>
           <li>
             Use the 'Reload App' button to submit a new data set.
