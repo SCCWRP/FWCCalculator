@@ -550,7 +550,7 @@ server <- function(input, output, session) {
     props <- proportions()
     shinyjs::show("download_results")
     props
-  }, options = list(searching = FALSE, lengthChange = FALSE, columnDefs = list(list(width = '155px', targets = 1))), selection = 'none') |>
+  }, options = list(ordering=FALSE, searching = FALSE, lengthChange = FALSE, columnDefs = list(list(width = '175px', targets = 1))), selection = 'none') |>
     bindEvent(input$redraw_graph)
 
   # generate filtered concentration/pollutant  sample table
@@ -571,12 +571,13 @@ server <- function(input, output, session) {
   },
   extensions = "FixedColumns",
   options = list(
+    ordering=FALSE,
     fixedColumns = list(leftColumns = 2),
     scrollX = TRUE,
     lengthChange = FALSE,
     searching = FALSE,
     autoWidth = TRUE,
-    columnDefs = list(list(width = '155px', targets = 1))
+    columnDefs = list(list(width = '175px', targets = 1))
   ),
   selection = 'none') |>
     bindEvent(input$redraw_graph)
