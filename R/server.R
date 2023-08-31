@@ -674,7 +674,11 @@ server <- function(input, output, session) {
   # number of rows dependent on number of generated plots
   output$download_pollutograph <- downloadHandler(
     filename = function() {
-      paste0("Pollutograph-", format(Sys.time(), "%Y-%m-%d-%H%M%S"), ".png")
+      if (length(EMCgraph()) > 1) {
+        paste0("Pollutograph-", format(Sys.time(), "%Y-%m-%d-%H%M%S"), ".zip")
+      } else {
+        paste0("Pollutograph-", format(Sys.time(), "%Y-%m-%d-%H%M%S"), ".png")
+      }
     },
     content = function(file) {
       withProgress(
@@ -682,7 +686,7 @@ server <- function(input, output, session) {
         value = 0,
         {
           num_graphs <- length(EMCgraph())
-          num_cols <- ifelse(num_graphs == 1, 1, 2)
+          #num_cols <- ifelse(num_graphs == 1, 1, 2)
 
           emc_list <- lapply(
             EMCgraph(), function(p) {
@@ -696,10 +700,20 @@ server <- function(input, output, session) {
                 )
             }
           )
-
-          plot <- cowplot::plot_grid(plotlist=emc_list, ncol = num_cols) + theme(plot.background = element_rect(fill = "white", color = NA))
-          cowplot::save_plot(file, plot = plot, device = "png", ncol = num_cols, nrow = ceiling(length(EMCgraph())/2), base_height = 6.94, base_asp = 1.33)
-
+          if (length(emc_list) > 1) {
+            temp_dir <- tempdir()
+            save_paths <- sapply(
+              names(emc_list), function(plot) {
+                filename <- glue::glue('{temp_dir}/{stringr::str_replace_all(plot, "[[:punct:]]", "_")}.png')
+                cowplot::save_plot(filename, plot = emc_list[[plot]], device = "png", base_height = 6.94, base_asp = 1.33)
+                filename
+              }
+            )
+            zip(file, files = save_paths, extras = '-j')
+          } else {
+            plot <- emc_list[[1]]
+            cowplot::save_plot(file, plot = plot, device = "png", base_height = 6.94, base_asp = 1.33)
+          }
         }
       )
     }
