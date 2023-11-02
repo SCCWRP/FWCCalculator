@@ -57,7 +57,6 @@ has_no_missing_values <- function(file) {
 }
 
 has_no_negative_values <- function(file) {
-  #browser()
   sheets <- readxl::excel_sheets(file$datapath)[2:3]
 
   problem_sheets <- lapply(
@@ -146,10 +145,6 @@ has_headers <- function(file) {
   problem_sheets <- lapply(
     sheets,
     function(sheet) {
-      # purrr::map returns a list of the classes of data, which is desirable since the first column of dates
-      # will have more than 2 classes
-      # then use do.call to iterate through the list and concatenate the resulting classes to ensure they're
-      # all numeric typed, except the first column
       data <- readxl::read_excel(file$datapath, sheet = sheet)
       headers <- names(data)
       suppressWarnings(!all(is.na(as.numeric(headers))))
@@ -189,5 +184,59 @@ has_sample_times_in_range <- function(file) {
   }
   else {
     return("Not all sample timestamps within flow measurement timestamp range. Please adjust sample timestamps or flow measurement timestamps accordingly.")
+  }
+}
+
+has_no_duplicates <- function(file) {
+  sheets <- readxl::excel_sheets(file$datapath)[2:3]
+
+  problem_sheets <- lapply(
+    sheets,
+    function(sheet) {
+      data <- readxl::read_excel(file$datapath, sheet = sheet)
+
+      nrow(data) != nrow(unique(data))
+    }
+  )
+
+  names(problem_sheets) <- sheets
+  problem_sheets <- problem_sheets[sapply(problem_sheets, isTRUE)]
+
+  if (all(sapply(problem_sheets, isFALSE))) {
+    return(NULL)
+  }
+  else {
+    error_msg <- paste0("Duplicate rows found on sheet ", names(problem_sheets), ". ", collapse = "")
+    error_msg <- paste0(error_msg, "Please remove the duplicates and submit again.")
+    return(error_msg)
+  }
+}
+
+
+has_only_one_storm_event <- function(file) {
+  flow <- readxl::read_excel(file$datapath, sheet = 2)
+
+  time_diffs <- flow |>
+    dplyr::pull(1) |>
+    sort() |>
+    diff()
+  time_diffs <- c(NA_real_, time_diffs)
+
+  # mode function taken from https://stackoverflow.com/questions/2547402/how-to-find-the-statistical-mode
+  Mode <- function(x) {
+    ux <- unique(x)
+    ux[which.max(tabulate(match(x, ux)))]
+  }
+
+  if (all(time_diffs <= Mode(time_diffs))) {
+    return(NULL)
+  }
+  else {
+    times <- flow |>
+      dplyr::pull(1) |>
+      sort()
+    problem_timestamps <- times[time_diffs > Mode(time_diffs[time_diffs > 0])]
+    problem_rows <- which(flow |> dplyr::pull(1) %in% problem_timestamps) + 1 # plus header row
+    error_msg <- paste0("Only one storm event can be analyzed at a time. Please confirm you are submitting data for only one storm. Possible new storm(s) on row(s) ", paste(problem_rows, collapse = ", "))
   }
 }

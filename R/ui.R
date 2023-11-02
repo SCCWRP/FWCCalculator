@@ -21,7 +21,7 @@ ui <- fluidPage(
             </script >
             ")),
 
-  titlePanel("Flow-Weighting & Compositing Calculator"),
+  titlePanel("Flow-Weighting & Compositing Calculator (v1.0.1)"),
   fluidRow(
     column(
       3,
@@ -210,7 +210,7 @@ ui <- fluidPage(
     tabPanel(
       "Instructions",
       h3("Using this Calculator"),
-      "This calculator will produce a table of aliquot volume values, a hydrograph, and, if pollutant data is provided, pollutograph(s) for the given data set of flow rate measurements and sample timestamps.",
+      HTML("This calculator will produce a table of aliquot volume values, a hydrograph, and, if pollutant data is provided, pollutograph(s) for the given data set of flow rate measurements and sample timestamps of <strong>a single storm event</strong>."),
       HTML("
         <ol>
           <li>
@@ -240,6 +240,9 @@ ui <- fluidPage(
       h3("Data Requirements"),
       HTML("The uploaded Excel spreadsheet must conform to the following requirements:
         <ul>
+          <li>
+            Must contain data for exactly one storm event.
+          </li>
           <li>
             Must contain exactly three sheets, in the following order:
           </li>
@@ -296,7 +299,7 @@ ui <- fluidPage(
             The column headers are required and can be renamed as needed, but cannot be exclusively numeric characters [0-9].
           </li>
           <li>
-            All flow rate and pollutant measurements must be greater than zero.
+            All flow rate and pollutant measurements must be greater than or equal to zero.
           </li>
           <li>
             There may not be any missing values in the spreadsheet.
