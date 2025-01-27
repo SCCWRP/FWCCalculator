@@ -21,7 +21,7 @@ ui <- fluidPage(
             </script >
             ")),
 
-  titlePanel("Flow-Weighting & Compositing Calculator"),
+  titlePanel("Flow-Weighting & Compositing Calculator (v1.0.1)"),
   fluidRow(
     column(
       3,
@@ -52,6 +52,7 @@ ui <- fluidPage(
       strong("Step 2: Submit Data"),
       column(
         9,
+        "If pollutant data is provided, concentrations must be exclusively numeric values.",
         div(
           fileInput(
             "file",
@@ -64,6 +65,9 @@ ui <- fluidPage(
       ),
       column(
         3,
+        br(),
+        br(),
+        br(),
         br(),
         shinyjs::disabled(
           actionButton("submit", "Submit")
@@ -192,6 +196,14 @@ ui <- fluidPage(
         width = '250px',
         onclick ="window.open('https://forms.office.com/pages/responsepage.aspx?id=PfKopOEaHEuZAuqhUwKBkNb1vpfauiZNit2g-l_MjnRUNVJWVFlFRzdLOVVPODlYMllLNjE3RU44Vy4u&web=1&wdLOR=cBEFC20B7-3BF7-4F6B-ADE9-65CD584DA1A3', '_blank')"
       ),
+      shinyWidgets::actionBttn(
+        "knowmore",
+        "Want to know more about EMCs? Access the supporting journal article.",
+        width = '250px',
+        onclick ="window.open('https://ascelibrary.org/doi/10.1061/JSWBAY.SWENG-552', '_blank')"
+      ),
+
+
       br(),
       br(),
       shinyWidgets::actionBttn(
@@ -206,7 +218,7 @@ ui <- fluidPage(
     tabPanel(
       "Instructions",
       h3("Using this Calculator"),
-      "This calculator will produce a table of aliquot volume values, a hydrograph, and, if pollutant data is provided, pollutograph(s) for the given data set of flow rate measurements and sample timestamps.",
+      HTML("This calculator will produce a table of aliquot volume values, a hydrograph, and, if pollutant data is provided, pollutograph(s) for the given data set of flow rate measurements and sample timestamps of <strong>a single storm event</strong>."),
       HTML("
         <ol>
           <li>
@@ -225,7 +237,7 @@ ui <- fluidPage(
             The 'Composite Vol.' input is used in the aliquot volume calculation such that the sum of the aliquot volumes will be equal to the composite volume value entered here, measured in mL. The minimum and maximum supported values are 500 mL and 10,000 mL, respectively.
           </li>
           <li>
-            The 'Flow Units of Submitted Data' input is used to label and calculate the 'Total Hydrograph Volume' output.
+            The 'Flow Units of Submitted Data' input is used to label and calculate the 'Total Hydrograph Volume' output. This input does not function as a unit conversion.
           </li>
           <li>
             Use the 'Reload App' button to submit a new data set.
@@ -236,6 +248,9 @@ ui <- fluidPage(
       h3("Data Requirements"),
       HTML("The uploaded Excel spreadsheet must conform to the following requirements:
         <ul>
+          <li>
+            Must contain data for exactly one storm event.
+          </li>
           <li>
             Must contain exactly three sheets, in the following order:
           </li>
@@ -292,7 +307,7 @@ ui <- fluidPage(
             The column headers are required and can be renamed as needed, but cannot be exclusively numeric characters [0-9].
           </li>
           <li>
-            All flow rate and pollutant measurements must be greater than zero.
+            All flow rate and pollutant measurements must be greater than or equal to zero.
           </li>
           <li>
             There may not be any missing values in the spreadsheet.

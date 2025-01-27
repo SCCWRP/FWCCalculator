@@ -2,3 +2,27 @@
 .Rhistory
 .RData
 .Ruserdata
+
+
+# Temporary or backup files
+*.tmp
+*.log
+*.bak
+*.swp
+*.DS_Store
+~$*
+
+# RStudio files
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+
+# Renv cache
+renv/library/
+renv/staging/
+
+# Deployment-related files
+rsconnect/
+
+
